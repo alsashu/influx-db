@@ -1,0 +1,113 @@
+🕒 Module 1: Introduction to InfluxDB (45 mins)
+
+What is InfluxDB and where it fits in the time-series data ecosystem
+
+InfluxDB architecture (TSM engine, shards, retention, WAL)
+
+Core components: Database, Measurement, Field, Tag, and Series
+
+Overview of InfluxDB OSS vs InfluxDB Cloud
+
+Installation, setup, and basic configuration
+
+🕒 Module 2: Data Modeling and Schemas (60 mins)
+
+Designing efficient measurement schemas
+
+Choosing tags vs fields — performance impact
+
+Series cardinality and optimization
+
+Schema evolution and naming conventions
+
+Practical modeling examples for IoT, DevOps metrics, and industrial data
+
+🕒 Module 3: Writing and Ingesting Data (60 mins)
+
+Methods of data ingestion (line protocol, HTTP API, client libraries)
+
+Batch writes and precision handling
+
+Using Telegraf for automated data ingestion
+
+Handling high-velocity data streams and ingestion best practices
+
+🕒 Module 4: Querying and Aggregating Data (75 mins)
+
+Introduction to InfluxQL and Flux query languages
+
+Filtering, grouping, and aggregation functions
+
+Windowing, mathematical operations, and joins
+
+Query optimization techniques
+
+Working examples of analytical queries
+
+🕒 Module 5: Data Retention, Downsampling, and Continuous Queries (60 mins)
+
+Understanding retention policies (RPs)
+
+Setting and managing RPs for large datasets
+
+Continuous queries for automatic downsampling
+
+Managing data lifecycle efficiently
+
+🕒 Module 6: Performance Tuning and Scaling (75 mins)
+
+Indexing and compression techniques
+
+Scaling out with clustering and sharding
+
+Managing write and query load
+
+Disk I/O, caching, and performance monitoring
+
+Common pitfalls and tuning tips
+
+🕒 Module 7: Visualization, Monitoring, and Alerting (60 mins)
+
+Visualization options: Chronograf, Grafana, and third-party tools
+
+Building dashboards and custom charts
+
+Monitoring InfluxDB with internal metrics and Prometheus integration
+
+Setting up alerts for thresholds and anomalies
+
+🕒 Module 8: Administration, Security, and Backup (60 mins)
+
+Managing users, organizations, and roles
+
+Authentication and authorization
+
+Access control best practices
+
+Backup and restore strategies
+
+Data migration between environments
+
+Using InfluxDB templates for deployment consistency
+
+🕒 Module 9: API Integrations, Tools, and Ecosystem (45 mins)
+
+InfluxDB HTTP API and client libraries (C#, Python, Node.js)
+
+Working with InfluxDB notebooks for analytics
+
+Integration with DevOps, IoT, and cloud systems
+
+Automation and orchestration using scripts and APIs
+
+Best practices and real-world architecture patterns
+
+🕒 Module 10: Capstone Project & Best Practices (30 mins)
+
+End-to-end project: Collect, store, query, visualize, and alert on live system metrics
+
+Performance validation and tuning walkthrough
+
+Summary of best practices for production-grade deployment
+
+Future roadmap: InfluxDB 3.x and ecosystem evolution

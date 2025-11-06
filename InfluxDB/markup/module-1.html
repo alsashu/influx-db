@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 1: Introduction to InfluxDB</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css">
+  <!-- Prism.js for code highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #9394FF;
+      --secondary-color: #4F46E5;
+      --accent-color: #10B981;
+      --dark-bg: #1F2937;
+      --light-bg: #F9FAFB;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+    }
+
+    .hero-section {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+      color: white;
+      padding: 80px 0;
+      margin-bottom: 50px;
+    }
+
+    .hero-section h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .module-nav {
+      background-color: var(--dark-bg);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .module-nav .nav-link {
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .module-nav .nav-link:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .section-title {
+      color: var(--secondary-color);
+      font-weight: 700;
+      margin-top: 50px;
+      margin-bottom: 30px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--primary-color);
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      margin-bottom: 30px;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+      color: white;
+      font-weight: 600;
+      padding: 15px 20px;
+    }
+
+    .interactive-demo {
+      background-color: var(--light-bg);
+      border-radius: 10px;
+      padding: 30px;
+      margin: 30px 0;
+      border-left: 5px solid var(--accent-color);
+    }
+
+    .code-block {
+      background-color: #2d2d2d;
+      border-radius: 8px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background-color: #1a1a1a;
+      padding: 10px 20px;
+      color: #888;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #444;
+    }
+
+    .architecture-diagram {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin: 30px 0;
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+    }
+
+    .comparison-table {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .tick-stack-visual {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px;
+      color: white;
+      margin: 30px 0;
+    }
+
+    .tick-component {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      flex: 1;
+      margin: 0 10px;
+      transition: transform 0.3s;
+    }
+
+    .tick-component:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .arrow {
+      font-size: 2rem;
+      color: white;
+    }
+
+    .btn-demo {
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 10px 30px;
+      border-radius: 5px;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .btn-demo:hover {
+      background: #059669;
+      color: white;
+    }
+
+    .output-console {
+      background-color: #1e1e1e;
+      color: #00ff00;
+      padding: 20px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      min-height: 100px;
+      margin-top: 15px;
+    }
+
+    .badge-custom {
+      padding: 5px 15px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .timeline {
+      position: relative;
+      padding: 20px 0;
+    }
+
+    .timeline-item {
+      padding: 20px;
+      border-left: 3px solid var(--primary-color);
+      margin-left: 20px;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 25px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--primary-color);
+    }
+
+    .alert-custom {
+      border-left: 4px solid;
+      border-radius: 5px;
+    }
+
+    .alert-custom.alert-info {
+      border-left-color: #3B82F6;
+      background-color: #EFF6FF;
+    }
+
+    .alert-custom.alert-warning {
+      border-left-color: #F59E0B;
+      background-color: #FFFBEB;
+    }
+
+    .alert-custom.alert-success {
+      border-left-color: var(--accent-color);
+      background-color: #ECFDF5;
+    }
+
+    .footer {
+      background-color: var(--dark-bg);
+      color: white;
+      padding: 40px 0;
+      margin-top: 80px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h1><i class="bi bi-database-fill"></i> Module 1: Introduction to InfluxDB</h1>
+          <p class="lead">Master the fundamentals of time-series data management with InfluxDB</p>
+          <div class="mt-4">
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-clock"></i> 45 minutes</span>
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-bar-chart-fill"></i> Beginner</span>
+            <span class="badge bg-light text-dark"><i class="bi bi-people-fill"></i> 5 Topics</span>
+          </div>
+        </div>
+        <div class="col-lg-4 text-center">
+          <i class="bi bi-cloud-arrow-up" style="font-size: 150px; opacity: 0.8;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="module-nav">
+    <div class="container">
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a class="nav-link" href="#what-is-influxdb">What is InfluxDB</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#architecture">Architecture</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#core-components">Core Components</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#oss-vs-cloud">OSS vs Cloud</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#installation">Installation</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container mt-5">
+
+    <!-- Section 1: What is InfluxDB -->
+    <section id="what-is-influxdb">
+      <h2 class="section-title"><i class="bi bi-question-circle"></i> What is InfluxDB?</h2>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="alert alert-custom alert-info">
+            <h5><i class="bi bi-info-circle"></i> Time-Series Database</h5>
+            <p class="mb-0">InfluxDB is an open-source time-series database (TSDB) designed specifically for handling
+              time-stamped data with high write and query loads. It's optimized for use cases like IoT sensors, DevOps
+              monitoring, and real-time analytics.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <i class="bi bi-speedometer2 feature-icon"></i>
+              <h5 class="card-title">High Performance</h5>
+              <p class="card-text">Handle 100K-1M writes per second with optimized storage engine</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <i class="bi bi-file-zip feature-icon"></i>
+              <h5 class="card-title">Compression</h5>
+              <p class="card-text">10-100x compression ratios with specialized algorithms</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <i class="bi bi-code-square feature-icon"></i>
+              <h5 class="card-title">SQL-Like Queries</h5>
+              <p class="card-text">Familiar query languages: InfluxQL and Flux</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TICK Stack Visual -->
+      <h4 class="mt-5 mb-4">The TICK Stack Ecosystem</h4>
+      <div class="tick-stack-visual">
+        <div class="tick-component">
+          <i class="bi bi-arrow-down-circle" style="font-size: 3rem;"></i>
+          <h5 class="mt-3">Telegraf</h5>
+          <p class="mb-0">Data Collection</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="tick-component">
+          <i class="bi bi-database" style="font-size: 3rem;"></i>
+          <h5 class="mt-3">InfluxDB</h5>
+          <p class="mb-0">Time-Series Storage</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="tick-component">
+          <i class="bi bi-graph-up" style="font-size: 3rem;"></i>
+          <h5 class="mt-3">Chronograf</h5>
+          <p class="mb-0">Visualization</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="tick-component">
+          <i class="bi bi-bell" style="font-size: 3rem;"></i>
+          <h5 class="mt-3">Kapacitor</h5>
+          <p class="mb-0">Alerting</p>
+        </div>
+      </div>
+
+      <!-- Use Cases -->
+      <h4 class="mt-5 mb-4">Common Use Cases</h4>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-server"></i> DevOps Monitoring
+            </div>
+            <div class="card-body">
+              <ul>
+                <li>Server metrics (CPU, memory, disk)</li>
+                <li>Application performance monitoring</li>
+                <li>Container and Kubernetes metrics</li>
+                <li>Network traffic analysis</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-cpu"></i> IoT & Industrial
+            </div>
+            <div class="card-body">
+              <ul>
+                <li>Sensor data collection</li>
+                <li>Smart home automation</li>
+                <li>Industrial equipment monitoring</li>
+                <li>Predictive maintenance</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Time-Series Demo -->
+      <div class="interactive-demo mt-5">
+        <h4><i class="bi bi-activity"></i> Interactive: Time-Series Data Visualization</h4>
+        <p>See how time-series data changes over time. Click "Generate Data" to simulate sensor readings.</p>
+
+        <button id="generateDataBtn" class="btn btn-demo">
+          <i class="bi bi-play-circle"></i> Generate Data
+        </button>
+        <button id="clearDataBtn" class="btn btn-secondary">
+          <i class="bi bi-x-circle"></i> Clear
+        </button>
+
+        <canvas id="timeSeriesChart" class="mt-4" style="max-height: 300px;"></canvas>
+
+        <div class="mt-3">
+          <small class="text-muted">
+            <i class="bi bi-info-circle"></i> This simulates temperature sensor readings over time - a typical
+            time-series use case
+          </small>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Architecture -->
+    <section id="architecture">
+      <h2 class="section-title"><i class="bi bi-diagram-3"></i> InfluxDB Architecture</h2>
+
+      <div class="alert alert-custom alert-info">
+        <h5><i class="bi bi-lightbulb"></i> Architecture Overview</h5>
+        <p class="mb-0">InfluxDB uses a sophisticated architecture with WAL, in-memory cache, and TSM storage engine to
+          deliver high performance for time-series workloads.</p>
+      </div>
+
+      <!-- Architecture Diagram -->
+      <div class="architecture-diagram">
+        <h4 class="text-center mb-4">InfluxDB Write Path</h4>
+        <div class="timeline">
+          <div class="timeline-item">
+            <h5><i class="bi bi-1-circle"></i> Client Write Request</h5>
+            <p>Application sends time-series data via HTTP API</p>
+            <div class="code-block">
+              <div class="code-header">HTTP Request</div>
+              <pre><code class="language-bash">POST /api/v2/write?bucket=mybucket
+temperature,location=room1 value=22.5 1633024800000000000</code></pre>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <h5><i class="bi bi-2-circle"></i> Write Ahead Log (WAL)</h5>
+            <p>Data is first written to WAL for durability and crash recovery</p>
+            <span class="badge bg-success badge-custom">Sequential Writes</span>
+            <span class="badge bg-primary badge-custom">Durability</span>
+          </div>
+
+          <div class="timeline-item">
+            <h5><i class="bi bi-3-circle"></i> In-Memory Cache</h5>
+            <p>Data is cached in memory for fast reads</p>
+            <span class="badge bg-warning badge-custom">Hot Data</span>
+          </div>
+
+          <div class="timeline-item">
+            <h5><i class="bi bi-4-circle"></i> TSM Compaction</h5>
+            <p>Background process compresses and writes to TSM files</p>
+            <span class="badge bg-info badge-custom">10-100x Compression</span>
+          </div>
+
+          <div class="timeline-item">
+            <h5><i class="bi bi-5-circle"></i> Write Acknowledged</h5>
+            <p>Client receives success response</p>
+            <span class="badge bg-success badge-custom">Complete</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TSM Engine Details -->
+      <div class="row mt-5">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-file-earmark-zip"></i> TSM Engine Features
+            </div>
+            <div class="card-body">
+              <h6>Compression Techniques:</h6>
+              <ul>
+                <li><strong>Timestamps:</strong> Delta encoding + variable-byte</li>
+                <li><strong>Floats:</strong> Gorilla compression (XOR)</li>
+                <li><strong>Integers:</strong> Simple8b encoding</li>
+                <li><strong>Strings:</strong> Snappy compression</li>
+              </ul>
+              <div class="alert alert-success mt-3">
+                <small><i class="bi bi-check-circle"></i> Typical compression: 10-100x</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-layers"></i> Shards & Retention
+            </div>
+            <div class="card-body">
+              <h6>Shard Strategy:</h6>
+              <ul>
+                <li>Time-bounded data containers</li>
+                <li>Automatic data expiration</li>
+                <li>Efficient deletion (drop entire shard)</li>
+                <li>Configurable duration</li>
+              </ul>
+              <div class="alert alert-warning mt-3">
+                <small><i class="bi bi-exclamation-triangle"></i> Shard duration affects performance</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Compression Demo -->
+      <div class="interactive-demo mt-5">
+        <h4><i class="bi bi-file-zip"></i> Interactive: Compression Demonstration</h4>
+        <p>See how InfluxDB compresses time-series data</p>
+
+        <div class="row">
+          <div class="col-md-6">
+            <label class="form-label">Number of Data Points:</label>
+            <input type="range" class="form-range" id="dataPointsSlider" min="100" max="10000" step="100" value="1000">
+            <span id="dataPointsValue">1000</span>
+          </div>
+        </div>
+
+        <button id="calculateCompressionBtn" class="btn btn-demo mt-3">
+          <i class="bi bi-calculator"></i> Calculate Compression
+        </button>
+
+        <div id="compressionResult" class="mt-4" style="display:none;">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <h6>Uncompressed Size</h6>
+                  <h3 id="uncompressedSize" class="text-danger">0 KB</h3>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <h6>Compressed Size</h6>
+                  <h3 id="compressedSize" class="text-success">0 KB</h3>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <h6>Compression Ratio</h6>
+                  <h3 id="compressionRatio" class="text-primary">0x</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Core Components -->
+    <section id="core-components">
+      <h2 class="section-title"><i class="bi bi-puzzle"></i> Core Components</h2>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-box"></i> Understanding the Data Model
+            </div>
+            <div class="card-body">
+              <img src="https://docs.influxdata.com/img/influxdb/2-x-tsm-data-model.png" alt="InfluxDB Data Model"
+                class="img-fluid mb-3" onerror="this.style.display='none'">
+
+              <h5>Line Protocol Format:</h5>
+              <div class="code-block">
+                <div class="code-header">Format</div>
+                <pre><code class="language-txt">&lt;measurement&gt;[,&lt;tag_key&gt;=&lt;tag_value&gt;[,&lt;tag_key&gt;=&lt;tag_value&gt;]] &lt;field_key&gt;=&lt;field_value&gt;[,&lt;field_key&gt;=&lt;field_value&gt;] [&lt;timestamp&gt;]</code></pre>
+              </div>
+
+              <h5 class="mt-4">Example:</h5>
+              <div class="code-block">
+                <div class="code-header">Sample Data</div>
+                <pre><code class="language-txt">weather,location=us-midwest,season=summer temperature=82,humidity=71 1465839830100400200</code></pre>
+              </div>
+
+              <div class="mt-3">
+                <p><strong>Breakdown:</strong></p>
+                <ul>
+                  <li><span class="badge bg-primary">Measurement:</span> <code>weather</code></li>
+                  <li><span class="badge bg-success">Tags:</span> <code>location=us-midwest</code>,
+                    <code>season=summer</code>
+                  </li>
+                  <li><span class="badge bg-warning">Fields:</span> <code>temperature=82</code>,
+                    <code>humidity=71</code>
+                  </li>
+                  <li><span class="badge bg-info">Timestamp:</span> <code>1465839830100400200</code> (nanoseconds)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags vs Fields Comparison -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header bg-success text-white">
+              <i class="bi bi-tag"></i> Tags (Indexed)
+            </div>
+            <div class="card-body">
+              <h6>Characteristics:</h6>
+              <ul>
+                <li>Stored as strings</li>
+                <li>Indexed for fast queries</li>
+                <li>Used for filtering (WHERE)</li>
+                <li>Used for grouping (GROUP BY)</li>
+              </ul>
+              <h6 class="mt-3">Best For:</h6>
+              <ul>
+                <li>Host names</li>
+                <li>Regions/Locations</li>
+                <li>Sensor IDs</li>
+                <li>Status codes</li>
+              </ul>
+              <div class="alert alert-success">
+                <small><i class="bi bi-check-circle"></i> Low cardinality data</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+              <i class="bi bi-file-text"></i> Fields (Not Indexed)
+            </div>
+            <div class="card-body">
+              <h6>Characteristics:</h6>
+              <ul>
+                <li>Can be different types (float, int, string, bool)</li>
+                <li>Not indexed</li>
+                <li>Actual measured values</li>
+                <li>Required (at least one)</li>
+              </ul>
+              <h6 class="mt-3">Best For:</h6>
+              <ul>
+                <li>Temperature readings</li>
+                <li>CPU usage percentages</li>
+                <li>Response times</li>
+                <li>Measurements/Metrics</li>
+              </ul>
+              <div class="alert alert-warning">
+                <small><i class="bi bi-info-circle"></i> High cardinality is OK</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Line Protocol Builder -->
+      <div class="interactive-demo mt-5">
+        <h4><i class="bi bi-tools"></i> Interactive: Line Protocol Builder</h4>
+        <p>Build your own line protocol statement</p>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Measurement</label>
+              <input type="text" class="form-control" id="measurement" placeholder="e.g., temperature"
+                value="temperature">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Tags (comma-separated)</label>
+              <input type="text" class="form-control" id="tags" placeholder="e.g., location=room1,sensor=temp01"
+                value="location=room1">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Fields (comma-separated)</label>
+              <input type="text" class="form-control" id="fields" placeholder="e.g., value=22.5,humidity=65"
+                value="value=22.5">
+            </div>
+
+            <button id="buildLineProtocolBtn" class="btn btn-demo">
+              <i class="bi bi-hammer"></i> Build Line Protocol
+            </button>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Generated Line Protocol:</label>
+            <div class="output-console" id="lineProtocolOutput">
+              Click "Build Line Protocol" to generate...
+            </div>
+
+            <div class="mt-3">
+              <button id="copyLineProtocolBtn" class="btn btn-secondary" disabled>
+                <i class="bi bi-clipboard"></i> Copy to Clipboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Series Cardinality Explanation -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <i class="bi bi-calculator"></i> Understanding Series Cardinality
+        </div>
+        <div class="card-body">
+          <p><strong>Series</strong> = Unique combination of measurement + tag set</p>
+
+          <div class="code-block">
+            <div class="code-header">Example Series</div>
+            <pre><code class="language-txt"># Series 1
+cpu,host=server01,region=us-east value=45.2
+
+# Series 2
+cpu,host=server02,region=us-east value=52.1
+
+# Series 3 (different because of region tag)
+cpu,host=server01,region=us-west value=38.7</code></pre>
+          </div>
+
+          <h6 class="mt-3">Cardinality Calculation:</h6>
+          <p><code>Total Series = Measurements × (Tag1_Values × Tag2_Values × ... × TagN_Values)</code></p>
+
+          <div class="alert alert-custom alert-warning">
+            <h6><i class="bi bi-exclamation-triangle"></i> Important:</h6>
+            <p class="mb-0">High cardinality (millions of series) can impact performance. Keep series count under 1M for
+              optimal performance.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: OSS vs Cloud -->
+    <section id="oss-vs-cloud">
+      <h2 class="section-title"><i class="bi bi-cloud-check"></i> InfluxDB OSS vs Cloud</h2>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+              <i class="bi bi-box"></i> InfluxDB OSS (Open Source)
+            </div>
+            <div class="card-body">
+              <h6>Advantages:</h6>
+              <ul>
+                <li><i class="bi bi-check-circle text-success"></i> Free and open source</li>
+                <li><i class="bi bi-check-circle text-success"></i> Self-hosted (full control)</li>
+                <li><i class="bi bi-check-circle text-success"></i> No usage limits</li>
+                <li><i class="bi bi-check-circle text-success"></i> Data privacy/security</li>
+              </ul>
+
+              <h6 class="mt-3">Considerations:</h6>
+              <ul>
+                <li><i class="bi bi-x-circle text-danger"></i> Manual scaling</li>
+                <li><i class="bi bi-x-circle text-danger"></i> Self-managed backups</li>
+                <li><i class="bi bi-x-circle text-danger"></i> Infrastructure overhead</li>
+                <li><i class="bi bi-x-circle text-danger"></i> No built-in clustering (OSS)</li>
+              </ul>
+
+              <div class="alert alert-primary mt-3">
+                <small><strong>Best for:</strong> On-premise, custom integrations, learning</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <i class="bi bi-cloud"></i> InfluxDB Cloud
+            </div>
+            <div class="card-body">
+              <h6>Advantages:</h6>
+              <ul>
+                <li><i class="bi bi-check-circle text-success"></i> Fully managed</li>
+                <li><i class="bi bi-check-circle text-success"></i> Automatic scaling</li>
+                <li><i class="bi bi-check-circle text-success"></i> Built-in monitoring</li>
+                <li><i class="bi bi-check-circle text-success"></i> Global availability</li>
+              </ul>
+
+              <h6 class="mt-3">Considerations:</h6>
+              <ul>
+                <li><i class="bi bi-x-circle text-danger"></i> Usage-based pricing</li>
+                <li><i class="bi bi-x-circle text-danger"></i> Vendor lock-in</li>
+                <li><i class="bi bi-x-circle text-danger"></i> Internet dependency</li>
+                <li><i class="bi bi-x-circle text-danger"></i> Limited customization</li>
+              </ul>
+
+              <div class="alert mt-3" style="background: #F3E8FF; border-color: #C084FC;">
+                <small><strong>Best for:</strong> Quick deployment, scalable workloads, minimal ops</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Table -->
+      <div class="comparison-table mt-4">
+        <table class="table table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Feature</th>
+              <th>OSS 1.x</th>
+              <th>OSS 2.x</th>
+              <th>Cloud</th>
+              <th>Enterprise</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Cost</strong></td>
+              <td><span class="badge bg-success">Free</span></td>
+              <td><span class="badge bg-success">Free</span></td>
+              <td><span class="badge bg-warning text-dark">Paid</span></td>
+              <td><span class="badge bg-warning text-dark">Paid</span></td>
+            </tr>
+            <tr>
+              <td><strong>Hosting</strong></td>
+              <td>Self-hosted</td>
+              <td>Self-hosted</td>
+              <td>Managed</td>
+              <td>Self-hosted</td>
+            </tr>
+            <tr>
+              <td><strong>Clustering</strong></td>
+              <td><i class="bi bi-x-circle text-danger"></i></td>
+              <td><i class="bi bi-x-circle text-danger"></i></td>
+              <td><i class="bi bi-check-circle text-success"></i></td>
+              <td><i class="bi bi-check-circle text-success"></i></td>
+            </tr>
+            <tr>
+              <td><strong>UI</strong></td>
+              <td>Basic</td>
+              <td>Modern</td>
+              <td>Modern</td>
+              <td>Modern</td>
+            </tr>
+            <tr>
+              <td><strong>Query Language</strong></td>
+              <td>InfluxQL</td>
+              <td>Flux + InfluxQL</td>
+              <td>Both</td>
+              <td>Both</td>
+            </tr>
+            <tr>
+              <td><strong>Scaling</strong></td>
+              <td>Manual</td>
+              <td>Manual</td>
+              <td>Automatic</td>
+              <td>Manual</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 5: Installation & Setup -->
+    <section id="installation">
+      <h2 class="section-title"><i class="bi bi-download"></i> Installation & Setup</h2>
+
+      <!-- Installation Methods -->
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card text-center h-100">
+            <div class="card-body">
+              <i class="bi bi-box feature-icon"></i>
+              <h5>Docker</h5>
+              <p class="text-muted">Recommended for quick setup and testing</p>
+              <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#dockerModal">
+                View Instructions
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card text-center h-100">
+            <div class="card-body">
+              <i class="bi bi-ubuntu feature-icon"></i>
+              <h5>Ubuntu/Debian</h5>
+              <p class="text-muted">Direct installation on Linux systems</p>
+              <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ubuntuModal">
+                View Instructions
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card text-center h-100">
+            <div class="card-body">
+              <i class="bi bi-apple feature-icon"></i>
+              <h5>macOS</h5>
+              <p class="text-muted">Install using Homebrew</p>
+              <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#macModal">
+                View Instructions
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Start Guide -->
+      <div class="card mt-5">
+        <div class="card-header">
+          <i class="bi bi-rocket"></i> Quick Start: Write Your First Data Point
+        </div>
+        <div class="card-body">
+          <p>Follow these steps to write and query your first data in InfluxDB:</p>
+
+          <h6 class="mt-3">Step 1: Start InfluxDB (Docker)</h6>
+          <div class="code-block">
+            <div class="code-header">Terminal</div>
+            <pre><code class="language-bash">docker run -d -p 8086:8086 \
+  --name influxdb \
+  influxdb:2.7</code></pre>
+          </div>
+
+          <h6 class="mt-3">Step 2: Access the UI</h6>
+          <p>Open <a href="http://localhost:8086" target="_blank">http://localhost:8086</a> in your browser</p>
+
+          <h6 class="mt-3">Step 3: Complete Setup</h6>
+          <ul>
+            <li>Username: <code>admin</code></li>
+            <li>Organization: <code>myorg</code></li>
+            <li>Bucket: <code>mybucket</code></li>
+          </ul>
+
+          <h6 class="mt-3">Step 4: Write Data</h6>
+          <div class="code-block">
+            <div class="code-header">Using curl</div>
+            <pre><code class="language-bash">curl -XPOST "http://localhost:8086/api/v2/write?org=myorg&bucket=mybucket" \
+  -H "Authorization: Token YOUR_TOKEN" \
+  --data-binary 'temperature,location=room1 value=22.5'</code></pre>
+          </div>
+
+          <h6 class="mt-3">Step 5: Query Data</h6>
+          <div class="code-block">
+            <div class="code-header">Flux Query</div>
+            <pre><code class="language-flux">from(bucket: "mybucket")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "temperature")</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Write Simulator -->
+      <div class="interactive-demo mt-5">
+        <h4><i class="bi bi-pencil"></i> Interactive: Write Data Simulator</h4>
+        <p>Simulate writing data to InfluxDB and see the response</p>
+
+        <div class="row">
+          <div class="col-md-6">
+            <label class="form-label">Measurement</label>
+            <input type="text" class="form-control mb-2" id="writeMeasurement" value="temperature">
+
+            <label class="form-label">Location (tag)</label>
+            <input type="text" class="form-control mb-2" id="writeLocation" value="room1">
+
+            <label class="form-label">Value (field)</label>
+            <input type="number" class="form-control mb-2" id="writeValue" value="22.5" step="0.1">
+
+            <button id="simulateWriteBtn" class="btn btn-demo mt-3">
+              <i class="bi bi-send"></i> Simulate Write
+            </button>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Response:</label>
+            <div class="output-console" id="writeResponse">
+              Waiting for write...
+            </div>
+
+            <div id="writeSuccess" class="alert alert-success mt-3" style="display:none;">
+              <i class="bi bi-check-circle"></i> Data written successfully!
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="mt-5">
+      <div class="card">
+        <div class="card-header bg-dark text-white">
+          <i class="bi bi-card-checklist"></i> Module Summary
+        </div>
+        <div class="card-body">
+          <h5>What You've Learned:</h5>
+          <div class="row">
+            <div class="col-md-6">
+              <ul>
+                <li><i class="bi bi-check-circle text-success"></i> What InfluxDB is and its use cases</li>
+                <li><i class="bi bi-check-circle text-success"></i> InfluxDB architecture (WAL, TSM, Shards)</li>
+                <li><i class="bi bi-check-circle text-success"></i> Core components (Measurements, Tags, Fields)</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <ul>
+                <li><i class="bi bi-check-circle text-success"></i> Differences between OSS and Cloud</li>
+                <li><i class="bi bi-check-circle text-success"></i> Installation and setup methods</li>
+                <li><i class="bi bi-check-circle text-success"></i> Writing and querying data basics</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-4 text-center">
+            <a href="module-2.html" class="btn btn-lg" style="background: var(--secondary-color); color: white;">
+              <i class="bi bi-arrow-right-circle"></i> Continue to Module 2: Data Modeling
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Installation Modals -->
+  <!-- Docker Modal -->
+  <div class="modal fade" id="dockerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-box"></i> Docker Installation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Pull the InfluxDB image:</h6>
+          <div class="code-block">
+            <pre><code class="language-bash">docker pull influxdb:2.7</code></pre>
+          </div>
+
+          <h6 class="mt-3">Run the container:</h6>
+          <div class="code-block">
+            <pre><code class="language-bash">docker run -d -p 8086:8086 \
+  -v influxdb2-data:/var/lib/influxdb2 \
+  -v influxdb2-config:/etc/influxdb2 \
+  --name influxdb \
+  influxdb:2.7</code></pre>
+          </div>
+
+          <h6 class="mt-3">Access the UI:</h6>
+          <p>Open <a href="http://localhost:8086" target="_blank">http://localhost:8086</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ubuntu Modal -->
+  <div class="modal fade" id="ubuntuModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-ubuntu"></i> Ubuntu/Debian Installation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Add the repository:</h6>
+          <div class="code-block">
+            <pre><code class="language-bash">wget -q https://repos.influxdata.com/influxdata-archive_compat.key
+sudo apt-get update
+sudo apt-get install influxdb2</code></pre>
+          </div>
+
+          <h6 class="mt-3">Start the service:</h6>
+          <div class="code-block">
+            <pre><code class="language-bash">sudo systemctl start influxdb
+sudo systemctl enable influxdb</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- macOS Modal -->
+  <div class="modal fade" id="macModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-apple"></i> macOS Installation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Install using Homebrew:</h6>
+          <div class="code-block">
+            <pre><code class="language-bash">brew install influxdb</code></pre>
+          </div>
+
+          <h6 class="mt-3">Start the service:</h6>
+          <div class="code-block">
+            <pre><code class="language-bash">brew services start influxdb</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5><i class="bi bi-database-fill"></i> InfluxDB Training Course</h5>
+          <p>Master time-series data management</p>
+        </div>
+        <div class="col-md-6 text-end">
+          <h6>Resources</h6>
+          <ul class="list-unstyled">
+            <li><a href="https://docs.influxdata.com/" target="_blank" class="text-white">Official Documentation</a>
+            </li>
+            <li><a href="https://community.influxdata.com/" target="_blank" class="text-white">Community Forum</a></li>
+            <li><a href="https://university.influxdata.com/" target="_blank" class="text-white">InfluxDB University</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <hr style="border-color: rgba(255,255,255,0.1);">
+      <div class="text-center">
+        <small>&copy; 2024 InfluxDB Training Course. All rights reserved.</small>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+
+  <script>
+    // Time Series Chart
+    let timeSeriesChart = null;
+
+    document.getElementById('generateDataBtn').addEventListener('click', function () {
+      const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+
+      // Generate sample time-series data
+      const labels = [];
+      const data = [];
+      const now = new Date();
+
+      for (let i = 30; i >= 0; i--) {
+        const time = new Date(now - i * 60000); // 1 minute intervals
+        labels.push(time.toLocaleTimeString());
+        data.push(20 + Math.random() * 10); // Temperature between 20-30°C
+      }
+
+      if (timeSeriesChart) {
+        timeSeriesChart.destroy();
+      }
+
+      timeSeriesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Temperature (°C)',
+            data: data,
+            borderColor: '#9394FF',
+            backgroundColor: 'rgba(147, 148, 255, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              min: 15,
+              max: 35
+            }
+          }
+        }
+      });
+    });
+
+    document.getElementById('clearDataBtn').addEventListener('click', function () {
+      if (timeSeriesChart) {
+        timeSeriesChart.destroy();
+        timeSeriesChart = null;
+      }
+    });
+
+    // Compression Calculator
+    const slider = document.getElementById('dataPointsSlider');
+    const sliderValue = document.getElementById('dataPointsValue');
+
+    slider.addEventListener('input', function () {
+      sliderValue.textContent = this.value;
+    });
+
+    document.getElementById('calculateCompressionBtn').addEventListener('click', function () {
+      const points = parseInt(slider.value);
+
+      // Calculate sizes (approximate)
+      // Each point: 8 bytes timestamp + 8 bytes value + overhead = ~24 bytes
+      const uncompressed = points * 24;
+
+      // InfluxDB compression typically 10-30x
+      const compressionRatio = 15 + Math.random() * 15; // Random between 15-30
+      const compressed = uncompressed / compressionRatio;
+
+      document.getElementById('uncompressedSize').textContent = (uncompressed / 1024).toFixed(2) + ' KB';
+      document.getElementById('compressedSize').textContent = (compressed / 1024).toFixed(2) + ' KB';
+      document.getElementById('compressionRatio').textContent = compressionRatio.toFixed(1) + 'x';
+
+      document.getElementById('compressionResult').style.display = 'block';
+    });
+
+    // Line Protocol Builder
+    let generatedLineProtocol = '';
+
+    document.getElementById('buildLineProtocolBtn').addEventListener('click', function () {
+      const measurement = document.getElementById('measurement').value.trim();
+      const tags = document.getElementById('tags').value.trim();
+      const fields = document.getElementById('fields').value.trim();
+
+      if (!measurement || !fields) {
+        document.getElementById('lineProtocolOutput').textContent = 'Error: Measurement and Fields are required!';
+        document.getElementById('lineProtocolOutput').style.color = '#ff0000';
+        return;
+      }
+
+      const timestamp = Date.now() * 1000000; // Convert to nanoseconds
+
+      let lineProtocol = measurement;
+      if (tags) {
+        lineProtocol += ',' + tags;
+      }
+      lineProtocol += ' ' + fields + ' ' + timestamp;
+
+      generatedLineProtocol = lineProtocol;
+      document.getElementById('lineProtocolOutput').textContent = lineProtocol;
+      document.getElementById('lineProtocolOutput').style.color = '#00ff00';
+      document.getElementById('copyLineProtocolBtn').disabled = false;
+    });
+
+    document.getElementById('copyLineProtocolBtn').addEventListener('click', function () {
+      navigator.clipboard.writeText(generatedLineProtocol).then(function () {
+        const btn = document.getElementById('copyLineProtocolBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Copied!';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      });
+    });
+
+    // Write Simulator
+    document.getElementById('simulateWriteBtn').addEventListener('click', function () {
+      const measurement = document.getElementById('writeMeasurement').value;
+      const location = document.getElementById('writeLocation').value;
+      const value = document.getElementById('writeValue').value;
+
+      const lineProtocol = `${measurement},location=${location} value=${value}`;
+
+      // Simulate API call
+      document.getElementById('writeResponse').textContent = 'Writing data...\n\n';
+
+      setTimeout(() => {
+        const response = `POST /api/v2/write?org=myorg&bucket=mybucket
+Status: 204 No Content
+Content-Length: 0
+
+Line Protocol:
+${lineProtocol}
+
+Timestamp: ${new Date().toISOString()}`;
+
+        document.getElementById('writeResponse').textContent = response;
+        document.getElementById('writeSuccess').style.display = 'block';
+
+        setTimeout(() => {
+          document.getElementById('writeSuccess').style.display = 'none';
+        }, 3000);
+      }, 1000);
+    });
+
+    // Smooth scroll for navigation
+    document.querySelectorAll('.module-nav a').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Highlight active nav item on scroll
+    window.addEventListener('scroll', function () {
+      const sections = document.querySelectorAll('section[id]');
+      const navLinks = document.querySelectorAll('.module-nav .nav-link');
+
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= sectionTop - 200) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,85 @@
+Duration,Sequence,Pedagogical Objective,Key Message,Methodology,Material / Resources,Comment
+45 mins,Introduction to InfluxDB,"Understand what InfluxDB is, its core architecture, and its use cases in time-series data environments.",InfluxDB is purpose-built for handling large volumes of time-stamped data efficiently.,,,"What is InfluxDB and where it fits in the time-series data ecosystem
+
+InfluxDB architecture (TSM engine, shards, retention, WAL)
+
+Core components: Database, Measurement, Field, Tag, and Series
+
+Overview of InfluxDB OSS vs InfluxDB Cloud
+
+Installation, setup, and basic configuration"
+60 mins,Data Modeling & Schemas,Learn to design efficient time-series data schemas optimized for performance and scalability.,Proper schema design (tags vs fields) is critical to database performance and maintainability.,,,"Designing efficient measurement schemas
+
+Choosing tags vs fields ? performance impact
+
+Series cardinality and optimization
+
+Schema evolution and naming conventions
+
+Practical modeling examples for IoT, DevOps metrics, and industrial data"
+60 mins,Writing & Ingesting Data,"Explore methods for inserting data using APIs, line protocol, and Telegraf agents.",Reliable data ingestion pipelines are key to consistent time-series analytics.,,,"Methods of data ingestion (line protocol, HTTP API, client libraries)
+
+Batch writes and precision handling
+
+Using Telegraf for automated data ingestion
+
+Handling high-velocity data streams and ingestion best practices"
+75 mins,Querying & Aggregating Data,"Gain proficiency in InfluxQL and Flux queries for filtering, aggregation, and transformation.",Query optimization leads to faster insights and better resource utilization.,,,"Introduction to InfluxQL and Flux query languages
+
+Filtering, grouping, and aggregation functions
+
+Windowing, mathematical operations, and joins
+
+Query optimization techniques
+
+Working examples of analytical queries"
+60 mins,"Data Retention, Downsampling & Continuous Queries",Learn to manage data lifecycle efficiently with retention policies and continuous queries.,Retention and downsampling strategies help balance data detail and storage cost.,,,"Understanding retention policies (RPs)
+
+Setting and managing RPs for large datasets
+
+Continuous queries for automatic downsampling
+
+Managing data lifecycle efficiently"
+75 mins,Performance Tuning & Scaling,"Understand performance tuning, clustering, sharding, and system scaling for large datasets.","Performance depends on optimal indexing, compression, and load balancing.",,,"Indexing and compression techniques
+
+Scaling out with clustering and sharding
+
+Managing write and query load
+
+Disk I/O, caching, and performance monitoring
+
+Common pitfalls and tuning tips"
+60 mins,"Visualization, Monitoring & Alerting","Build dashboards, monitor system health, and configure alerting mechanisms.",Visualization and alerting transform raw data into actionable insights.,,,"Visualization options: Chronograf, Grafana, and third-party tools
+
+Building dashboards and custom charts
+
+Monitoring InfluxDB with internal metrics and Prometheus integration
+
+Setting up alerts for thresholds and anomalies"
+60 mins,"Administration, Security & Backup","Learn to secure InfluxDB, manage users, organizations, and perform backups.",Security and reliability are critical for enterprise-grade deployment.,,,"Managing users, organizations, and roles
+
+Authentication and authorization
+
+Access control best practices
+
+Backup and restore strategies
+
+Data migration between environments
+
+Using InfluxDB templates for deployment consistency"
+45 mins,"API Integrations, Tools & Ecosystem",Integrate InfluxDB with external systems via APIs and automation tools.,"InfluxDB?s ecosystem supports modern DevOps, IoT, and analytical workflows.",,,"InfluxDB HTTP API and client libraries (C#, Python, Node.js)
+
+Working with InfluxDB notebooks for analytics
+
+Integration with DevOps, IoT, and cloud systems
+
+Automation and orchestration using scripts and APIs
+
+Best practices and real-world architecture patterns"
+30 mins,Capstone Project & Best Practices,Apply all learned skills in a real-world use case from data ingestion to visualization.,End-to-end implementation validates architectural understanding.,,,"End-to-end project: Collect, store, query, visualize, and alert on live system metrics
+
+Performance validation and tuning walkthrough
+
+Summary of best practices for production-grade deployment
+
+Future roadmap: InfluxDB 3.x and ecosystem evolution"

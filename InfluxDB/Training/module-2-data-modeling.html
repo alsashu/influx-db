@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 2: Data Modeling and Schemas</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css">
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #9394FF;
+            --secondary-color: #4F46E5;
+            --accent-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --dark-bg: #1F2937;
+            --light-bg: #F9FAFB;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 50px;
+        }
+        
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .module-nav {
+            background-color: var(--dark-bg);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .module-nav .nav-link {
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .module-nav .nav-link:hover, .module-nav .nav-link.active {
+            background-color: var(--accent-color);
+        }
+        
+        .section-title {
+            color: var(--accent-color);
+            font-weight: 700;
+            margin-top: 50px;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 30px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+        
+        .card-header {
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        
+        .interactive-tool {
+            background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 40px 0;
+            border: 2px solid #C084FC;
+        }
+        
+        .code-block {
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .code-header {
+            background-color: #1a1a1a;
+            padding: 10px 20px;
+            color: #888;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .comparison-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .good-example {
+            background-color: #ECFDF5;
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        .bad-example {
+            background-color: #FEF2F2;
+            border-left: 5px solid var(--danger-color);
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 25px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .status-excellent { color: var(--accent-color); }
+        .status-good { color: #3B82F6; }
+        .status-warning { color: var(--warning-color); }
+        .status-danger { color: var(--danger-color); }
+        
+        .schema-builder {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .output-console {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            min-height: 150px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .tag-field-visual {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .visual-box {
+            flex: 1;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .tag-box {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .field-box {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white;
+        }
+        
+        .checklist-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: white;
+            border-left: 4px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .checklist-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .example-scenario {
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid #3B82F6;
+        }
+        
+        .cardinality-calculator {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .progress-custom {
+            height: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .alert-custom {
+            border-left: 4px solid;
+            border-radius: 5px;
+        }
+        
+        .btn-demo {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-demo:hover {
+            background: #059669;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .footer {
+            background-color: var(--dark-bg);
+            color: white;
+            padding: 40px 0;
+            margin-top: 80px;
+        }
+        
+        .use-case-tabs .nav-link {
+            color: #666;
+            border: 2px solid #ddd;
+            margin-right: 10px;
+            border-radius: 8px;
+        }
+        
+        .use-case-tabs .nav-link.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        .decision-matrix {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .matrix-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #F9FAFB;
+        }
+        
+        .matrix-row:hover {
+            background: #F3F4F6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1><i class="bi bi-diagram-3"></i> Module 2: Data Modeling & Schemas</h1>
+                    <p class="lead">Master the art of designing efficient and scalable InfluxDB schemas</p>
+                    <div class="mt-4">
+                        <span class="badge bg-light text-dark me-2"><i class="bi bi-clock"></i> 60 minutes</span>
+                        <span class="badge bg-light text-dark me-2"><i class="bi bi-bar-chart-fill"></i> Intermediate</span>
+                        <span class="badge bg-light text-dark"><i class="bi bi-tools"></i> Hands-on</span>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <i class="bi bi-bezier2" style="font-size: 150px; opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="module-nav">
+        <div class="container">
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <a class="nav-link" href="#schema-design">Schema Design</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#tags-vs-fields">Tags vs Fields</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#cardinality">Cardinality</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#evolution">Evolution</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#examples">Practical Examples</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        
+        <!-- Section 1: Schema Design -->
+        <section id="schema-design">
+            <h2 class="section-title"><i class="bi bi-pencil-square"></i> Designing Efficient Schemas</h2>
+            
+            <div class="alert alert-custom alert-info" style="border-left-color: #3B82F6; background-color: #EFF6FF;">
+                <h5><i class="bi bi-lightbulb"></i> Golden Rule of Schema Design</h5>
+                <p class="mb-0">Design your schema based on <strong>how you will query the data</strong>, not just what data you want to store. Query patterns should drive your schema decisions.</p>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-search" style="font-size: 3rem; color: var(--accent-color);"></i>
+                            <h5 class="mt-3">Query-Driven Design</h5>
+                            <p class="text-muted">Design for your query patterns first</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-speedometer" style="font-size: 3rem; color: var(--accent-color);"></i>
+                            <h5 class="mt-3">Cardinality Aware</h5>
+                            <p class="text-muted">Monitor and optimize series count</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-arrow-repeat" style="font-size: 3rem; color: var(--accent-color);"></i>
+                            <h5 class="mt-3">Iterative Approach</h5>
+                            <p class="text-muted">Start simple, optimize as needed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schema Design Process -->
+            <h4 class="mt-5 mb-4">Schema Design Process</h4>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ol class="list-group list-group-numbered">
+                                <li class="list-group-item">Identify what you're measuring</li>
+                                <li class="list-group-item">Determine query patterns</li>
+                                <li class="list-group-item">Choose measurement granularity</li>
+                                <li class="list-group-item">Decide tags (metadata for filtering)</li>
+                                <li class="list-group-item">Decide fields (actual measurements)</li>
+                                <li class="list-group-item">Validate cardinality</li>
+                                <li class="list-group-item">Test and iterate</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <img src="https://docs.influxdata.com/img/influxdb/schema-design-process.png" alt="Schema Design Process" class="img-fluid" onerror="this.src='https://via.placeholder.com/400x300?text=Schema+Design+Process'">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Good vs Bad Examples -->
+            <h4 class="mt-5 mb-4">Common Anti-Patterns to Avoid</h4>
+            
+            <div class="comparison-box bad-example">
+                <h5><i class="bi bi-x-circle text-danger"></i> Bad: Too Many Measurements</h5>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>Anti-Pattern</span>
+                    </div>
+                    <pre><code class="language-txt">temperature_sensor_1 value=22.5
+temperature_sensor_2 value=23.1
+temperature_sensor_3 value=21.8</code></pre>
+                </div>
+                <p class="mt-2"><strong>Problem:</strong> Creates unnecessary measurements, harder to query across sensors</p>
+            </div>
+            
+            <div class="comparison-box good-example">
+                <h5><i class="bi bi-check-circle text-success"></i> Good: Single Measurement with Tags</h5>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>Best Practice</span>
+                    </div>
+                    <pre><code class="language-txt">temperature,sensor_id=sensor_1 value=22.5
+temperature,sensor_id=sensor_2 value=23.1
+temperature,sensor_id=sensor_3 value=21.8</code></pre>
+                </div>
+                <p class="mt-2"><strong>Benefit:</strong> Easy to query all sensors, flexible filtering and grouping</p>
+            </div>
+
+            <!-- Interactive Schema Builder -->
+            <div class="interactive-tool mt-5">
+                <h4><i class="bi bi-tools"></i> Interactive Schema Builder</h4>
+                <p>Design your schema and get instant feedback on best practices</p>
+                
+                <div class="schema-builder">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Measurement Name</label>
+                                <input type="text" class="form-control" id="schemaMeasurement" placeholder="e.g., cpu_usage">
+                                <small class="text-muted">Use lowercase with underscores</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tags (comma-separated)</label>
+                                <textarea class="form-control" id="schemaTags" rows="3" placeholder="host=server01,region=us-east"></textarea>
+                                <small class="text-muted">Low cardinality metadata for filtering</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Fields (comma-separated)</label>
+                                <textarea class="form-control" id="schemaFields" rows="3" placeholder="usage_percent=45.2,cores=8"></textarea>
+                                <small class="text-muted">Actual measurements</small>
+                            </div>
+                            
+                            <button id="validateSchemaBtn" class="btn btn-demo">
+                                <i class="bi bi-check-circle"></i> Validate Schema
+                            </button>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Schema Analysis</label>
+                            <div class="output-console" id="schemaAnalysis">
+                                Enter your schema details and click "Validate Schema" to see the analysis...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Tags vs Fields -->
+        <section id="tags-vs-fields">
+            <h2 class="section-title"><i class="bi bi-shuffle"></i> Tags vs Fields: The Critical Decision</h2>
+            
+            <div class="alert alert-custom alert-warning" style="border-left-color: #F59E0B; background-color: #FFFBEB;">
+                <h5><i class="bi bi-exclamation-triangle"></i> The Golden Rule</h5>
+                <p class="mb-0"><strong>Tags</strong> = Dimensions for filtering and grouping (indexed)<br>
+                <strong>Fields</strong> = Actual measurements (not indexed)</p>
+            </div>
+
+            <!-- Visual Comparison -->
+            <div class="tag-field-visual">
+                <div class="visual-box tag-box">
+                    <i class="bi bi-tag-fill" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">TAGS</h4>
+                    <p><strong>Indexed Metadata</strong></p>
+                    <hr style="border-color: rgba(255,255,255,0.3);">
+                    <ul class="text-start">
+                        <li>Always strings</li>
+                        <li>Indexed for fast queries</li>
+                        <li>Low-medium cardinality</li>
+                        <li>Used for WHERE/GROUP BY</li>
+                        <li>~1-2 KB memory per series</li>
+                    </ul>
+                </div>
+                
+                <div class="visual-box field-box">
+                    <i class="bi bi-file-earmark-text-fill" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">FIELDS</h4>
+                    <p><strong>Measured Values</strong></p>
+                    <hr style="border-color: rgba(255,255,255,0.3);">
+                    <ul class="text-start">
+                        <li>Multiple types (float, int, string, bool)</li>
+                        <li>Not indexed</li>
+                        <li>High cardinality OK</li>
+                        <li>Cannot use in WHERE (efficiently)</li>
+                        <li>Minimal memory overhead</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Decision Matrix -->
+            <h4 class="mt-5 mb-4">Decision Matrix: When to Use Tags vs Fields</h4>
+            <div class="decision-matrix">
+                <div class="matrix-row">
+                    <div>
+                        <strong>Need to filter by value?</strong>
+                        <p class="text-muted mb-0">WHERE clause queries</p>
+                    </div>
+                    <span class="badge bg-success" style="font-size: 1rem;">Use TAG</span>
+                </div>
+                
+                <div class="matrix-row">
+                    <div>
+                        <strong>Need to group by value?</strong>
+                        <p class="text-muted mb-0">GROUP BY aggregations</p>
+                    </div>
+                    <span class="badge bg-success" style="font-size: 1rem;">Use TAG</span>
+                </div>
+                
+                <div class="matrix-row">
+                    <div>
+                        <strong>High cardinality data?</strong>
+                        <p class="text-muted mb-0">Unique IDs, continuous values</p>
+                    </div>
+                    <span class="badge bg-warning text-dark" style="font-size: 1rem;">Use FIELD</span>
+                </div>
+                
+                <div class="matrix-row">
+                    <div>
+                        <strong>Actual measurement?</strong>
+                        <p class="text-muted mb-0">The thing being measured</p>
+                    </div>
+                    <span class="badge bg-warning text-dark" style="font-size: 1rem;">Use FIELD</span>
+                </div>
+                
+                <div class="matrix-row">
+                    <div>
+                        <strong>Numeric value?</strong>
+                        <p class="text-muted mb-0">Counts, durations, percentages</p>
+                    </div>
+                    <span class="badge bg-warning text-dark" style="font-size: 1rem;">Use FIELD</span>
+                </div>
+            </div>
+
+            <!-- Real-World Scenarios -->
+            <h4 class="mt-5 mb-4">Real-World Scenarios</h4>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <i class="bi bi-x-circle"></i> Dangerous: User ID as Tag
+                        </div>
+                        <div class="card-body">
+                            <div class="code-block">
+                                <pre><code class="language-txt">http_requests,user_id=user_12345 duration=45</code></pre>
+                            </div>
+                            <div class="alert alert-danger mt-3">
+                                <strong>Problem:</strong> Millions of users = millions of series!<br>
+                                <strong>Impact:</strong> System crash, high memory usage
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-check-circle"></i> Safe: User ID as Field
+                        </div>
+                        <div class="card-body">
+                            <div class="code-block">
+                                <pre><code class="language-txt">http_requests,endpoint=/api/users duration=45,user_id="user_12345"</code></pre>
+                            </div>
+                            <div class="alert alert-success mt-3">
+                                <strong>Solution:</strong> Low cardinality tags, high cardinality fields<br>
+                                <strong>Impact:</strong> Stable performance, scalable
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Tag vs Field Advisor -->
+            <div class="interactive-tool mt-5">
+                <h4><i class="bi bi-question-circle"></i> Interactive: Tag or Field?</h4>
+                <p>Get recommendations on whether to use a tag or field</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Data Type</label>
+                            <select class="form-select" id="advisorDataType">
+                                <option value="">Select data type...</option>
+                                <option value="hostname">Hostname</option>
+                                <option value="userid">User ID</option>
+                                <option value="region">Region/Location</option>
+                                <option value="statuscode">HTTP Status Code</option>
+                                <option value="temperature">Temperature Value</option>
+                                <option value="sessionid">Session ID</option>
+                                <option value="version">App Version</option>
+                                <option value="timestamp">Timestamp String</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Estimated Unique Values</label>
+                            <input type="number" class="form-control" id="advisorCardinality" placeholder="e.g., 1000">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Will you filter by this value?</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filterBy" id="filterYes" value="yes">
+                                <label class="form-check-label" for="filterYes">Yes, frequently</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filterBy" id="filterNo" value="no">
+                                <label class="form-check-label" for="filterNo">No, rarely</label>
+                            </div>
+                        </div>
+                        
+                        <button id="getAdviceBtn" class="btn btn-demo">
+                            <i class="bi bi-lightbulb"></i> Get Recommendation
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Recommendation</label>
+                        <div id="advisorOutput" class="output-console">
+                            Fill in the details and click "Get Recommendation"...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Cardinality -->
+        <section id="cardinality">
+            <h2 class="section-title"><i class="bi bi-calculator"></i> Series Cardinality & Optimization</h2>
+            
+            <div class="alert alert-custom alert-danger" style="border-left-color: #EF4444; background-color: #FEF2F2;">
+                <h5><i class="bi bi-exclamation-octagon"></i> Critical Concept</h5>
+                <p class="mb-0"><strong>Cardinality</strong> is the number of unique series (measurement + tag combinations). High cardinality is the #1 cause of InfluxDB performance problems!</p>
+            </div>
+
+            <!-- Cardinality Explanation -->
+            <div class="card">
+                <div class="card-header" style="background: var(--accent-color); color: white;">
+                    <i class="bi bi-info-circle"></i> Understanding Series Cardinality
+                </div>
+                <div class="card-body">
+                    <h5>Formula:</h5>
+                    <div class="code-block">
+                        <pre><code>Total Series = Measurements × (Tag1_Values × Tag2_Values × ... × TagN_Values)</code></pre>
+                    </div>
+                    
+                    <h5 class="mt-4">Example:</h5>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Schema:</strong></p>
+                            <ul>
+                                <li>Measurement: <code>cpu</code></li>
+                                <li>Tag <code>host</code>: 100 values</li>
+                                <li>Tag <code>cpu_core</code>: 8 values</li>
+                                <li>Tag <code>region</code>: 5 values</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Calculation:</strong></p>
+                            <div class="code-block">
+                                <pre><code>1 × (100 × 8 × 5) = 4,000 series</code></pre>
+                            </div>
+                            <div class="alert alert-success mt-2">
+                                <i class="bi bi-check-circle"></i> Excellent! Well within limits
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Thresholds -->
+            <h4 class="mt-5 mb-4">Performance Thresholds</h4>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <i class="bi bi-emoji-smile status-excellent" style="font-size: 3rem;"></i>
+                        <div class="metric-value status-excellent">&lt; 100K</div>
+                        <p class="mb-0">Excellent</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <i class="bi bi-emoji-neutral status-good" style="font-size: 3rem;"></i>
+                        <div class="metric-value status-good">100K - 1M</div>
+                        <p class="mb-0">Good</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <i class="bi bi-emoji-frown status-warning" style="font-size: 3rem;"></i>
+                        <div class="metric-value status-warning">1M - 10M</div>
+                        <p class="mb-0">Concerning</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <i class="bi bi-emoji-dizzy status-danger" style="font-size: 3rem;"></i>
+                        <div class="metric-value status-danger">&gt; 10M</div>
+                        <p class="mb-0">Critical</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Cardinality Calculator -->
+            <div class="interactive-tool mt-5">
+                <h4><i class="bi bi-calculator-fill"></i> Interactive: Cardinality Calculator</h4>
+                <p>Calculate the cardinality of your schema design</p>
+                
+                <div class="cardinality-calculator">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Number of Measurements</label>
+                                <input type="number" class="form-control" id="numMeasurements" value="1" min="1">
+                            </div>
+                            
+                            <div id="tagInputs">
+                                <div class="mb-3 tag-input-group">
+                                    <label class="form-label fw-bold">Tag 1: Number of Unique Values</label>
+                                    <input type="number" class="form-control tag-cardinality" placeholder="e.g., 100" min="1">
+                                </div>
+                            </div>
+                            
+                            <button id="addTagBtn" class="btn btn-secondary btn-sm mb-3">
+                                <i class="bi bi-plus-circle"></i> Add Another Tag
+                            </button>
+                            
+                            <div class="d-grid">
+                                <button id="calculateCardinalityBtn" class="btn btn-demo">
+                                    <i class="bi bi-calculator"></i> Calculate Cardinality
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div id="cardinalityResult" style="display: none;">
+                                <div class="metric-card">
+                                    <h5>Total Series Cardinality</h5>
+                                    <div class="metric-value" id="totalCardinality">0</div>
+                                    <div id="cardinalityStatus" class="mt-3"></div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <h6>Memory Impact (Estimated)</h6>
+                                    <div class="progress progress-custom">
+                                        <div id="memoryBar" class="progress-bar" role="progressbar" style="width: 0%">0 MB</div>
+                                    </div>
+                                </div>
+                                
+                                <div id="cardinalityAdvice" class="mt-4">
+                                    <!-- Advice will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Strategies -->
+            <h4 class="mt-5 mb-4">Cardinality Optimization Strategies</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <i class="bi bi-1-circle"></i> Consolidate Tag Values
+                        </div>
+                        <div class="card-body">
+                            <div class="comparison-box bad-example">
+                                <strong>Before:</strong>
+                                <div class="code-block">
+                                    <pre><code>http,endpoint=/api/users/123
+http,endpoint=/api/users/456
+http,endpoint=/api/users/789</code></pre>
+                                </div>
+                                <small class="text-danger">Millions of unique endpoints!</small>
+                            </div>
+                            
+                            <div class="comparison-box good-example">
+                                <strong>After:</strong>
+                                <div class="code-block">
+                                    <pre><code>http,endpoint=/api/users/:id user_id="123"
+http,endpoint=/api/users/:id user_id="456"
+http,endpoint=/api/users/:id user_id="789"</code></pre>
+                                </div>
+                                <small class="text-success">~50 parameterized endpoints</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-2-circle"></i> Remove Unnecessary Tags
+                        </div>
+                        <div class="card-body">
+                            <div class="comparison-box bad-example">
+                                <strong>Before:</strong>
+                                <div class="code-block">
+                                    <pre><code>metrics,host=srv01,dc=dc1,rack=r5,row=r3,floor=2 value=42</code></pre>
+                                </div>
+                                <small class="text-danger">Too many dimensional tags!</small>
+                            </div>
+                            
+                            <div class="comparison-box good-example">
+                                <strong>After:</strong>
+                                <div class="code-block">
+                                    <pre><code>metrics,host=srv01,dc=dc1 value=42,rack="r5",floor=2</code></pre>
+                                </div>
+                                <small class="text-success">Essential tags only</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Schema Evolution -->
+        <section id="evolution">
+            <h2 class="section-title"><i class="bi bi-arrow-repeat"></i> Schema Evolution & Naming</h2>
+            
+            <div class="alert alert-custom alert-info" style="border-left-color: #3B82F6; background-color: #EFF6FF;">
+                <h5><i class="bi bi-info-circle"></i> Schema Evolution Challenge</h5>
+                <p class="mb-0">InfluxDB is schemaless but schemas can't be easily changed retroactively. Plan for evolution from the start!</p>
+            </div>
+
+            <!-- Evolution Strategies -->
+            <h4 class="mt-4 mb-4">Evolution Strategies</h4>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-check-circle"></i> Strategy 1: Additive Changes (Preferred)
+                </div>
+                <div class="card-body">
+                    <p><strong>Approach:</strong> Add new fields or tags without breaking existing data</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Evolution Timeline</span>
+                        </div>
+                        <pre><code># Version 1: Initial
+sensor,location=warehouse temperature=22.5
+
+# Version 2: Add humidity (✅ Safe)
+sensor,location=warehouse temperature=22.5,humidity=65.0
+
+# Version 3: Add zone tag (⚠️ New series)
+sensor,location=warehouse,zone=a temperature=22.5,humidity=65.0</code></pre>
+                    </div>
+                    <div class="alert alert-success mt-3">
+                        <i class="bi bi-check-circle"></i> Queries remain backward compatible
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <i class="bi bi-exclamation-triangle"></i> Strategy 2: Versioned Measurements
+                </div>
+                <div class="card-body">
+                    <p><strong>Use when:</strong> Breaking changes are necessary</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Versioning Example</span>
+                        </div>
+                        <pre><code># Old schema
+sensor_v1,location=warehouse temp=22.5
+
+# New schema (breaking change: renamed field)
+sensor_v2,location=warehouse temperature=22.5,humidity=65.0
+
+# Transition: Write to both
+# Query: Union both versions during migration</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Naming Conventions -->
+            <h4 class="mt-5 mb-4">Naming Conventions</h4>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header" style="background: var(--primary-color); color: white;">
+                            <i class="bi bi-file-text"></i> Measurements
+                        </div>
+                        <div class="card-body">
+                            <h6 class="text-success"><i class="bi bi-check-circle"></i> Good:</h6>
+                            <ul>
+                                <li><code>cpu_usage</code></li>
+                                <li><code>http_requests</code></li>
+                                <li><code>temperature_readings</code></li>
+                            </ul>
+                            
+                            <h6 class="text-danger mt-3"><i class="bi bi-x-circle"></i> Bad:</h6>
+                            <ul>
+                                <li><code>CPU-Usage</code> (uppercase)</li>
+                                <li><code>httpReq</code> (camelCase)</li>
+                                <li><code>temp</code> (unclear)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-tag"></i> Tags
+                        </div>
+                        <div class="card-body">
+                            <h6 class="text-success"><i class="bi bi-check-circle"></i> Good:</h6>
+                            <ul>
+                                <li><code>host</code></li>
+                                <li><code>region</code></li>
+                                <li><code>service_name</code></li>
+                                <li><code>environment</code></li>
+                            </ul>
+                            
+                            <h6 class="text-danger mt-3"><i class="bi bi-x-circle"></i> Bad:</h6>
+                            <ul>
+                                <li><code>hostName</code> (camelCase)</li>
+                                <li><code>reg</code> (abbreviated)</li>
+                                <li><code>srv.name</code> (period)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <i class="bi bi-file-earmark-text"></i> Fields
+                        </div>
+                        <div class="card-body">
+                            <h6 class="text-success"><i class="bi bi-check-circle"></i> Good:</h6>
+                            <ul>
+                                <li><code>response_time_ms</code></li>
+                                <li><code>memory_usage_bytes</code></li>
+                                <li><code>temperature_celsius</code></li>
+                            </ul>
+                            
+                            <h6 class="text-danger mt-3"><i class="bi bi-x-circle"></i> Bad:</h6>
+                            <ul>
+                                <li><code>respTime</code> (no unit)</li>
+                                <li><code>mem</code> (unclear)</li>
+                                <li><code>value</code> (generic)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Practical Examples -->
+        <section id="examples">
+            <h2 class="section-title"><i class="bi bi-lightbulb"></i> Practical Modeling Examples</h2>
+            
+            <!-- Use Case Tabs -->
+            <ul class="nav nav-pills use-case-tabs mb-4" id="useCaseTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="iot-tab" data-bs-toggle="pill" data-bs-target="#iot" type="button" role="tab">
+                        <i class="bi bi-cpu"></i> IoT Sensors
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="devops-tab" data-bs-toggle="pill" data-bs-target="#devops" type="button" role="tab">
+                        <i class="bi bi-server"></i> DevOps Monitoring
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="industrial-tab" data-bs-toggle="pill" data-bs-target="#industrial" type="button" role="tab">
+                        <i class="bi bi-gear"></i> Industrial
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="useCaseTabContent">
+                <!-- IoT Example -->
+                <div class="tab-pane fade show active" id="iot" role="tabpanel">
+                    <div class="example-scenario">
+                        <h4><i class="bi bi-cpu"></i> IoT Temperature Monitoring System</h4>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5>Requirements:</h5>
+                                <ul>
+                                    <li>10,000 sensors across 50 facilities</li>
+                                    <li>Readings every 10 seconds</li>
+                                    <li>Query by facility, room, and sensor</li>
+                                    <li>Track sensor health</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Initial Cardinality Analysis:</h5>
+                                <div class="alert alert-danger">
+                                    <strong>Naive approach:</strong><br>
+                                    50 facilities × 250 buildings × 10,000 sensors<br>
+                                    = <strong>125M series</strong> ❌
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <div class="card-header bg-success text-white">
+                                <i class="bi bi-check-circle"></i> Optimized Schema
+                            </div>
+                            <div class="card-body">
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span>Final Schema</span>
+                                    </div>
+                                    <pre><code># Main temperature readings
+sensor_temperature,facility_id=fac_001,sensor_id=sen_12345 temperature_celsius=22.5,humidity_percent=65.0,battery_percent=87.5
+
+# Sensor health (less frequent)
+sensor_health,facility_id=fac_001,sensor_id=sen_12345 battery_percent=87.5,signal_strength_dbm=-45
+
+# Alerts (event-driven)
+sensor_alerts,facility_id=fac_001,sensor_id=sen_12345,alert_type=high_temp severity="warning",threshold=30.0</code></pre>
+                                </div>
+                                
+                                <div class="alert alert-success mt-3">
+                                    <strong>Optimized cardinality:</strong><br>
+                                    50 facilities × 10,000 sensors = <strong>500,000 series</strong> ✅
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DevOps Example -->
+                <div class="tab-pane fade" id="devops" role="tabpanel">
+                    <div class="example-scenario">
+                        <h4><i class="bi bi-server"></i> DevOps Monitoring</h4>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5>Requirements:</h5>
+                                <ul>
+                                    <li>500 servers across 5 regions</li>
+                                    <li>CPU, memory, disk, network metrics</li>
+                                    <li>Application performance tracking</li>
+                                    <li>Multi-tenant architecture</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Key Metrics:</h5>
+                                <ul>
+                                    <li>System-level metrics</li>
+                                    <li>Application metrics</li>
+                                    <li>Container metrics</li>
+                                    <li>Database stats</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <div class="card-header bg-success text-white">
+                                <i class="bi bi-check-circle"></i> Schema Design
+                            </div>
+                            <div class="card-body">
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span>System Metrics</span>
+                                    </div>
+                                    <pre><code># CPU metrics
+system_cpu,host=server01,region=us-east,env=prod,cluster=web usage_percent=45.2,usage_user=30.1,usage_system=15.1,cores=16
+
+# Memory metrics
+system_memory,host=server01,region=us-east,env=prod,cluster=web total_bytes=34359738368,used_bytes=27487790694,usage_percent=80.0
+
+# HTTP requests (optimized for low cardinality)
+http_requests,service=api,endpoint=/api/v1/users,method=GET,status=200,env=prod count=1245,duration_ms=45,bytes_sent=204800</code></pre>
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="alert alert-info">
+                                            <strong>System metrics cardinality:</strong><br>
+                                            500 hosts × 5 regions × 3 envs × 10 clusters<br>
+                                            = <strong>75,000 series</strong> ✅
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="alert alert-info">
+                                            <strong>HTTP metrics cardinality:</strong><br>
+                                            20 services × 100 endpoints × 4 methods × 10 statuses<br>
+                                            = <strong>80,000 series</strong> ✅
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Industrial Example -->
+                <div class="tab-pane fade" id="industrial" role="tabpanel">
+                    <div class="example-scenario">
+                        <h4><i class="bi bi-gear"></i> Industrial Manufacturing</h4>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5>Requirements:</h5>
+                                <ul>
+                                    <li>50 production lines, 3 factories</li>
+                                    <li>20-30 machines per line</li>
+                                    <li>Sensor data: temp, pressure, vibration</li>
+                                    <li>Production output tracking</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Challenge:</h5>
+                                <div class="alert alert-warning">
+                                    Initial calculation:<br>
+                                    3 factories × 50 lines × 1500 machines × 10 sensors<br>
+                                    = <strong>33.7M series</strong> ❌
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <div class="card-header bg-success text-white">
+                                <i class="bi bi-check-circle"></i> Hybrid Solution
+                            </div>
+                            <div class="card-body">
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span>Multi-Level Approach</span>
+                                    </div>
+                                    <pre><code># Line-level aggregates (real-time dashboards)
+line_metrics,factory=factory_a,line=line_01 avg_temperature=75.5,avg_pressure=6.5,total_output=4500
+
+# Critical machine monitoring (detailed tracking)
+critical_machines,factory=factory_a,machine_id=mach_045,criticality=high temperature_celsius=75.5,vibration_mm_per_sec=2.3,pressure_bar=6.5
+
+# Production events
+production_events,factory=factory_a,line=line_01,event_type=batch_complete batch_id="batch_5678",units=1000,duration_min=480
+
+# Downtime tracking
+downtime_events,factory=factory_a,line=line_01,reason_category=mechanical event="motor_failure",duration_min=45</code></pre>
+                                </div>
+                                
+                                <div class="alert alert-success mt-3">
+                                    <strong>Optimized approach:</strong>
+                                    <ul class="mb-0">
+                                        <li>Aggregate by line for monitoring: <strong>150 series</strong></li>
+                                        <li>Detailed tracking for critical machines: <strong>50K series</strong></li>
+                                        <li>Total: <strong>~50K series</strong> ✅</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schema Design Exercise -->
+            <div class="interactive-tool mt-5">
+                <h4><i class="bi bi-pen"></i> Exercise: Design Your Own Schema</h4>
+                <p>Practice designing a schema for a real-world scenario</p>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Scenario: E-commerce Platform</h5>
+                        <p><strong>Requirements:</strong></p>
+                        <ul>
+                            <li>Track user behavior (page views, clicks, searches)</li>
+                            <li>Monitor API performance</li>
+                            <li>Collect payment transaction metrics</li>
+                            <li>1M active users</li>
+                            <li>100K requests/minute</li>
+                            <li>50 microservices</li>
+                        </ul>
+                        
+                        <div class="alert alert-warning">
+                            <strong>Your Task:</strong>
+                            <ol>
+                                <li>Define measurements</li>
+                                <li>Choose appropriate tags and fields</li>
+                                <li>Calculate series cardinality</li>
+                                <li>Identify potential issues</li>
+                            </ol>
+                        </div>
+                        
+                        <button class="btn btn-demo" data-bs-toggle="modal" data-bs-target="#exerciseModal">
+                            <i class="bi bi-lightbulb"></i> View Solution
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Best Practices Checklist -->
+        <section class="mt-5">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <i class="bi bi-card-checklist"></i> Schema Design Checklist
+                </div>
+                <div class="card-body">
+                    <h5>Before deploying your schema, verify:</h5>
+                    
+                    <div class="checklist-item">
+                        <i class="bi bi-check-circle text-success me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Cardinality calculated and acceptable (&lt; 1M series)</strong>
+                            <p class="text-muted mb-0">Use the cardinality calculator to validate</p>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <i class="bi bi-check-circle text-success me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Tags are low-cardinality metadata</strong>
+                            <p class="text-muted mb-0">No UUIDs, user IDs, or continuous values as tags</p>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <i class="bi bi-check-circle text-success me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Fields are actual measurements</strong>
+                            <p class="text-muted mb-0">High cardinality data belongs in fields</p>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <i class="bi bi-check-circle text-success me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Naming conventions followed</strong>
+                            <p class="text-muted mb-0">Lowercase, underscores, clear and consistent</p>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <i class="bi bi-check-circle text-success me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Query patterns tested</strong>
+                            <p class="text-muted mb-0">Verify queries are performant with expected data volumes</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="module-1-introduction.html" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left-circle"></i> Back to Module 1
+                        </a>
+                        <button class="btn btn-demo">
+                            <i class="bi bi-trophy"></i> Complete Module 2
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Exercise Solution Modal -->
+    <div class="modal fade" id="exerciseModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-lightbulb"></i> Exercise Solution: E-commerce Schema</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Proposed Schema Design:</h6>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>User Behavior Tracking</span>
+                        </div>
+                        <pre><code># Page views (low cardinality tags)
+page_views,page_category=product,device_type=mobile,country=US count=1,session_id="abc123",user_id="u12345"
+
+# Search queries
+search_queries,search_category=electronics count=1,query_text="laptop",user_id="u12345"</code></pre>
+                    </div>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>API Performance</span>
+                        </div>
+                        <pre><code># API metrics (parameterized endpoints)
+api_requests,service=checkout,endpoint=/api/orders,method=POST,status=200 duration_ms=145,bytes=2048,user_id="u12345"</code></pre>
+                    </div>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Payment Transactions</span>
+                        </div>
+                        <pre><code># Transaction metrics
+transactions,payment_method=credit_card,status=completed,country=US amount=99.99,order_id="ORD-123",user_id="u12345"</code></pre>
+                    </div>
+                    
+                    <h6 class="mt-4">Cardinality Analysis:</h6>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Measurement</th>
+                                <th>Tags</th>
+                                <th>Cardinality</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>page_views</td>
+                                <td>20 categories × 5 devices × 200 countries</td>
+                                <td>20,000</td>
+                                <td><span class="badge bg-success">✅ Excellent</span></td>
+                            </tr>
+                            <tr>
+                                <td>api_requests</td>
+                                <td>50 services × 100 endpoints × 4 methods × 10 statuses</td>
+                                <td>200,000</td>
+                                <td><span class="badge bg-success">✅ Good</span></td>
+                            </tr>
+                            <tr>
+                                <td>transactions</td>
+                                <td>5 payment methods × 10 statuses × 200 countries</td>
+                                <td>10,000</td>
+                                <td><span class="badge bg-success">✅ Excellent</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="alert alert-success">
+                        <strong>Total Series: ~230,000</strong> - Well within optimal range!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-database-fill"></i> InfluxDB Training Course</h5>
+                    <p>Master time-series data management and schema design</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h6>Additional Resources</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="https://docs.influxdata.com/influxdb/latest/write-data/best-practices/schema-design/" target="_blank" class="text-white">Schema Design Guide</a></li>
+                        <li><a href="https://community.influxdata.com/" target="_blank" class="text-white">Community Forum</a></li>
+                        <li><a href="https://university.influxdata.com/" target="_blank" class="text-white">InfluxDB University</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center">
+                <small>&copy; 2024 InfluxDB Training Course. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    
+    <script>
+        // Schema Validator
+        document.getElementById('validateSchemaBtn').addEventListener('click', function() {
+            const measurement = document.getElementById('schemaMeasurement').value.trim();
+            const tags = document.getElementById('schemaTags').value.trim();
+            const fields = document.getElementById('schemaFields').value.trim();
+            
+            let analysis = '';
+            let hasIssues = false;
+            
+            // Validate measurement
+            if (!measurement) {
+                analysis += '❌ ERROR: Measurement name is required\n\n';
+                hasIssues = true;
+            } else if (measurement !== measurement.toLowerCase()) {
+                analysis += '⚠️  WARNING: Measurement should be lowercase\n';
+                hasIssues = true;
+            } else if (measurement.includes('-')) {
+                analysis += '⚠️  WARNING: Use underscores instead of hyphens\n';
+                hasIssues = true;
+            } else {
+                analysis += '✅ Measurement name looks good\n';
+            }
+            
+            // Validate fields
+            if (!fields) {
+                analysis += '❌ ERROR: At least one field is required\n\n';
+                hasIssues = true;
+            } else {
+                analysis += '✅ Fields provided\n';
+            }
+            
+            // Analyze tags
+            if (tags) {
+                const tagPairs = tags.split(',').map(t => t.trim());
+                analysis += `\n📊 Tag Analysis:\n`;
+                analysis += `- Number of tags: ${tagPairs.length}\n`;
+                
+                tagPairs.forEach(tag => {
+                    const [key, value] = tag.split('=');
+                    if (value && value.length > 20) {
+                        analysis += `⚠️  Tag value '${key}' seems long - high cardinality risk\n`;
+                        hasIssues = true;
+                    }
+                });
+            } else {
+                analysis += '\n💡 TIP: Consider adding tags for filtering\n';
+            }
+            
+            // Generate recommendations
+            analysis += '\n📝 Recommendations:\n';
+            if (!hasIssues) {
+                analysis += '✅ Schema looks good!\n';
+                analysis += '✅ Remember to monitor cardinality\n';
+                analysis += '✅ Test with expected query patterns\n';
+            } else {
+                analysis += '⚠️  Please address the warnings above\n';
+            }
+            
+            const output = document.getElementById('schemaAnalysis');
+            output.textContent = analysis;
+            output.style.color = hasIssues ? '#F59E0B' : '#10B981';
+        });
+        
+        // Tag vs Field Advisor
+        document.getElementById('getAdviceBtn').addEventListener('click', function() {
+            const dataType = document.getElementById('advisorDataType').value;
+            const cardinality = parseInt(document.getElementById('advisorCardinality').value) || 0;
+            const filterBy = document.querySelector('input[name="filterBy"]:checked')?.value;
+            
+            let advice = '';
+            let recommendation = '';
+            
+            if (!dataType || !cardinality || !filterBy) {
+                advice = 'Please fill in all fields to get a recommendation.';
+                document.getElementById('advisorOutput').textContent = advice;
+                return;
+            }
+            
+            // Decision logic
+            const lowCardinality = cardinality < 10000;
+            const mediumCardinality = cardinality >= 10000 && cardinality < 100000;
+            const highCardinality = cardinality >= 100000;
+            
+            if (filterBy === 'yes' && lowCardinality) {
+                recommendation = 'TAG';
+                advice = `✅ USE AS TAG\n\n`;
+                advice += `Reasoning:\n`;
+                advice += `- You need to filter by this value\n`;
+                advice += `- Cardinality is low (${cardinality.toLocaleString()})\n`;
+                advice += `- Perfect for indexing\n\n`;
+                advice += `Impact: ~${(cardinality * 2 / 1024).toFixed(1)} MB memory`;
+            } else if (filterBy === 'yes' && mediumCardinality) {
+                recommendation = 'TAG (with caution)';
+                advice = `⚠️  USE AS TAG WITH CAUTION\n\n`;
+                advice += `Reasoning:\n`;
+                advice += `- You need to filter by this value\n`;
+                advice += `- Cardinality is medium (${cardinality.toLocaleString()})\n`;
+                advice += `- Monitor memory usage\n\n`;
+                advice += `Impact: ~${(cardinality * 2 / 1024).toFixed(1)} MB memory\n`;
+                advice += `Consider: Can you reduce cardinality?`;
+            } else if (highCardinality) {
+                recommendation = 'FIELD';
+                advice = `✅ USE AS FIELD\n\n`;
+                advice += `Reasoning:\n`;
+                advice += `- Cardinality is high (${cardinality.toLocaleString()})\n`;
+                advice += `- Would create too many series as tag\n`;
+                advice += `- Use fields for high cardinality data\n\n`;
+                advice += `Note: Cannot efficiently filter by field values`;
+            } else {
+                recommendation = 'FIELD';
+                advice = `✅ USE AS FIELD\n\n`;
+                advice += `Reasoning:\n`;
+                advice += `- You don't need to filter by this value\n`;
+                advice += `- No need for indexing overhead\n`;
+                advice += `- Store as measured data\n`;
+            }
+            
+            document.getElementById('advisorOutput').textContent = advice;
+            document.getElementById('advisorOutput').style.color = recommendation.includes('FIELD') ? '#F59E0B' : '#10B981';
+        });
+        
+        // Cardinality Calculator
+        let tagCount = 1;
+        
+        document.getElementById('addTagBtn').addEventListener('click', function() {
+            tagCount++;
+            const tagInputs = document.getElementById('tagInputs');
+            const newInput = document.createElement('div');
+            newInput.className = 'mb-3 tag-input-group';
+            newInput.innerHTML = `
+                <label class="form-label fw-bold">Tag ${tagCount}: Number of Unique Values</label>
+                <input type="number" class="form-control tag-cardinality" placeholder="e.g., 100" min="1">
+            `;
+            tagInputs.appendChild(newInput);
+        });
+        
+        document.getElementById('calculateCardinalityBtn').addEventListener('click', function() {
+            const numMeasurements = parseInt(document.getElementById('numMeasurements').value) || 1;
+            const tagInputs = document.querySelectorAll('.tag-cardinality');
+            
+            let totalCardinality = numMeasurements;
+            
+            tagInputs.forEach(input => {
+                const value = parseInt(input.value) || 1;
+                totalCardinality *= value;
+            });
+            
+            // Display result
+            document.getElementById('totalCardinality').textContent = totalCardinality.toLocaleString();
+            document.getElementById('cardinalityResult').style.display = 'block';
+            
+            // Estimate memory (rough: 1-2 KB per series)
+            const memoryMB = (totalCardinality * 1.5) / 1024;
+            const memoryBar = document.getElementById('memoryBar');
+            
+            let barColor = '';
+            let statusHtml = '';
+            let adviceHtml = '';
+            
+            if (totalCardinality < 100000) {
+                barColor = 'bg-success';
+                statusHtml = '<div class="alert alert-success"><i class="bi bi-check-circle"></i> <strong>Excellent!</strong> This cardinality is optimal.</div>';
+                adviceHtml = '<div class="alert alert-info"><strong>Tips:</strong><ul><li>Your schema is well-designed</li><li>Monitor as data grows</li><li>Document your schema</li></ul></div>';
+            } else if (totalCardinality < 1000000) {
+                barColor = 'bg-info';
+                statusHtml = '<div class="alert alert-info"><i class="bi bi-info-circle"></i> <strong>Good</strong> - Within acceptable range. Monitor growth.</div>';
+                adviceHtml = '<div class="alert alert-warning"><strong>Recommendations:</strong><ul><li>Monitor cardinality regularly</li><li>Consider if all tags are necessary</li><li>Plan for data growth</li></ul></div>';
+            } else if (totalCardinality < 10000000) {
+                barColor = 'bg-warning';
+                statusHtml = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> <strong>Concerning</strong> - Consider optimization.</div>';
+                adviceHtml = '<div class="alert alert-danger"><strong>Action Required:</strong><ul><li>Remove unnecessary tags</li><li>Consolidate tag values</li><li>Move high-cardinality data to fields</li></ul></div>';
+            } else {
+                barColor = 'bg-danger';
+                statusHtml = '<div class="alert alert-danger"><i class="bi bi-exclamation-octagon"></i> <strong>Critical!</strong> This will cause performance issues.</div>';
+                adviceHtml = '<div class="alert alert-danger"><strong>Immediate Action:</strong><ul><li>Redesign schema immediately</li><li>Move most tags to fields</li><li>Aggregate data before writing</li><li>Consult the optimization guide</li></ul></div>';
+            }
+            
+            memoryBar.className = 'progress-bar ' + barColor;
+            memoryBar.style.width = Math.min((memoryMB / 2000) * 100, 100) + '%';
+            memoryBar.textContent = memoryMB.toFixed(1) + ' MB';
+            
+            document.getElementById('cardinalityStatus').innerHTML = statusHtml;
+            document.getElementById('cardinalityAdvice').innerHTML = adviceHtml;
+        });
+        
+        // Smooth scroll for navigation
+        document.querySelectorAll('.module-nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Highlight active nav item on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.module-nav .nav-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
