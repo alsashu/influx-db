@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Railway Track Designer - Freehand Drawing Tool</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+  <!-- GoJS Library -->
+  <script src="https://unpkg.com/gojs@3.0.2/release/go.js"></script>
+
+  <style>
+    :root {
+      --grid-color: #9db4c0;
+      --grid-bg: #e8f1f5;
+      --primary-color: #2c5f7f;
+      --track-color: #1a4d6b;
+      --highlight-color: #ff6b35;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container-fluid {
+      max-width: 1600px;
+    }
+
+    .card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #1a4d6b 100%);
+      color: white;
+      border-radius: 15px 15px 0 0 !important;
+      padding: 20px;
+    }
+
+    .card-header h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+
+    .card-header p {
+      margin: 5px 0 0 0;
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    .toolbar {
+      background: #f8f9fa;
+      padding: 15px;
+      border-bottom: 2px solid #e9ecef;
+      border-radius: 0;
+    }
+
+    .btn-tool {
+      border-radius: 8px;
+      padding: 8px 16px;
+      margin: 0 5px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .btn-tool:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-tool.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+      background: #1a4d6b;
+      border-color: #1a4d6b;
+    }
+
+    .btn-danger {
+      background: var(--highlight-color);
+      border-color: var(--highlight-color);
+    }
+
+    .input-group {
+      max-width: 200px;
+    }
+
+    .input-group-text {
+      background-color: white;
+      border-right: none;
+    }
+
+    .form-control {
+      border-left: none;
+      border-radius: 8px;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(44, 95, 127, 0.25);
+    }
+
+    #canvasContainer {
+      width: 100%;
+      height: 600px;
+      position: relative;
+      border-radius: 0 0 15px 15px;
+      overflow: hidden;
+    }
+
+    #diagramDiv {
+      width: 100%;
+      height: 100%;
+      background-color: var(--grid-bg);
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #drawingCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #drawingCanvas.active {
+      pointer-events: auto;
+      cursor: crosshair;
+    }
+
+    .stats-panel {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .stat-value {
+      color: var(--primary-color);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .instructions {
+      background: #e7f3ff;
+      border-left: 4px solid var(--primary-color);
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 8px;
+    }
+
+    .instructions h6 {
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .instructions ul {
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 5px;
+      color: #495057;
+    }
+
+    .divider {
+      height: 30px;
+      width: 1px;
+      background-color: #dee2e6;
+      margin: 0 10px;
+    }
+
+    @media (max-width: 768px) {
+      #canvasContainer {
+        height: 400px;
+      }
+
+      .btn-tool {
+        margin: 5px 2px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+      }
+
+      .toolbar {
+        padding: 10px;
+      }
+
+      .divider {
+        display: none;
+      }
+    }
+
+    .toolbar-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-message {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26, 77, 107, 0.95);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      z-index: 1000;
+      display: none;
+      max-width: 80%;
+      text-align: center;
+    }
+
+    .status-message.show {
+      display: block;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="card">
+      <!-- Header -->
+      <div class="card-header">
+        <h1><i class="bi bi-bezier2"></i> Railway Track Designer</h1>
+        <p>Professional metric grid-based track drawing and measurement tool - Freehand Drawing</p>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-section">
+          <!-- Drawing Tools -->
+          <div class="btn-group" role="group" aria-label="Drawing tools">
+            <button id="selectBtn" class="btn btn-outline-primary btn-tool active" title="Select and move tracks">
+              <i class="bi bi-cursor"></i> Select
+            </button>
+            <button id="pencilBtn" class="btn btn-outline-primary btn-tool"
+              title="Draw new track by clicking and dragging">
+              <i class="bi bi-pencil"></i> Draw Track
+            </button>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Edit Tools -->
+          <div class="btn-group" role="group" aria-label="Edit tools">
+            <button id="undoBtn" class="btn btn-outline-secondary btn-tool" title="Undo last action">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+            <button id="redoBtn" class="btn btn-outline-secondary btn-tool" title="Redo action">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button id="deleteBtn" class="btn btn-outline-danger btn-tool" title="Delete selected track">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Grid Size Input -->
+          <div class="input-group">
+            <span class="input-group-text" title="Grid size in meters">
+              <i class="bi bi-grid-3x3"></i>
+            </span>
+            <input type="number" id="gridSizeInput" class="form-control" value="5" min="1" max="100" step="1"
+              title="Meters per grid square">
+            <span class="input-group-text">m</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Canvas Actions -->
+          <button id="clearBtn" class="btn btn-outline-warning btn-tool" title="Clear all tracks">
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+
+          <div class="divider"></div>
+
+          <!-- Export Tools -->
+          <div class="btn-group" role="group" aria-label="Export tools">
+            <button id="exportSvgBtn" class="btn btn-outline-success btn-tool" title="Export as SVG">
+              <i class="bi bi-filetype-svg"></i> SVG
+            </button>
+            <button id="exportPngBtn" class="btn btn-outline-success btn-tool" title="Export as PNG">
+              <i class="bi bi-filetype-png"></i> PNG
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Container with overlay -->
+      <div id="canvasContainer">
+        <div id="diagramDiv"></div>
+        <canvas id="drawingCanvas"></canvas>
+        <div id="statusMessage" class="status-message"></div>
+      </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel">
+      <h5 class="mb-3"><i class="bi bi-graph-up"></i> Project Statistics</h5>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="stat-item">
+            <span class="stat-label">Total Tracks:</span>
+            <span class="stat-value" id="trackCount">0</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-item">
+            <span class="stat-label">Total Length:</span>
+            <span class="stat-value" id="totalLength">0.00 m</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-item">
+            <span class="stat-label">Grid Size:</span>
+            <span class="stat-value" id="currentGridSize">5 m</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <h6><i class="bi bi-info-circle"></i> How to Use</h6>
+      <ul>
+        <li><strong>Draw Track (Freehand):</strong>
+          <ol style="margin-top: 5px; padding-left: 20px;">
+            <li>Click the "Draw Track" button (pencil icon turns blue)</li>
+            <li><strong>Click and drag</strong> on the canvas to draw your track path freehand</li>
+            <li>Release the mouse to finish the current track</li>
+            <li>The track automatically snaps to grid intersections for precision</li>
+            <li>Draw multiple tracks by clicking and dragging again</li>
+          </ol>
+        </li>
+        <li><strong>Grid Size:</strong> Change the grid size (meters per square) to adjust measurement scale. All track
+          lengths update automatically.</li>
+        <li><strong>Select & Move:</strong> Click "Select" button, then click and drag tracks to reposition them.</li>
+        <li><strong>Delete:</strong> In Select mode, click a track to select it, then click Delete button or press
+          Delete key.</li>
+        <li><strong>Track Length:</strong> Each track displays its length in meters as a label.</li>
+        <li><strong>Export:</strong> Save your design as SVG (vector) or PNG (raster) image.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // ============================================================================
+    // RAILWAY TRACK DESIGNER - Freehand Drawing with Canvas Overlay
+    // ============================================================================
+
+    const go = window.go;
+    let diagram = null;
+    let canvas = null;
+    let ctx = null;
+    let gridSize = 5;
+    let isDrawingMode = false;
+    let isDrawing = false;
+    let currentPoints = [];
+    let trackCounter = 0;
+    const GRID_CELL_SIZE = 20;
+
+    // ============================================================================
+    // INITIALIZATION
+    // ============================================================================
+
+    function initDiagram() {
+      const $ = go.GraphObject.make;
+
+      diagram = $(go.Diagram, 'diagramDiv', {
+        'undoManager.isEnabled': true,
+        'allowCopy': false,
+        'allowTextEdit': false,
+        initialContentAlignment: go.Spot.Center,
+        padding: 20,
+
+        'grid': $(go.Panel, 'Grid',
+          {
+            gridCellSize: new go.Size(GRID_CELL_SIZE, GRID_CELL_SIZE),
+            visible: true
+          },
+          $(go.Shape, 'LineH', {
+            stroke: '#9db4c0',
+            strokeWidth: 1,
+            strokeDashArray: [1, 4]
+          }),
+          $(go.Shape, 'LineV', {
+            stroke: '#9db4c0',
+            strokeWidth: 1,
+            strokeDashArray: [1, 4]
+          })
+        )
+      });
+
+      diagram.nodeTemplate =
+        $(go.Node, 'Spot',
+          {
+            locationSpot: go.Spot.Center,
+            locationObjectName: 'SHAPE',
+            selectionAdorned: true,
+            selectionObjectName: 'SHAPE'
+          },
+          new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(go.Point.stringify),
+
+          $(go.Shape,
+            {
+              name: 'SHAPE',
+              stroke: '#1a4d6b',
+              strokeWidth: 4,
+              fill: null,
+              strokeCap: 'round',
+              strokeJoin: 'round'
+            },
+            new go.Binding('geometry', 'points', pointsToGeometry)
+          ),
+
+          $(go.Panel, 'Auto',
+            {
+              alignment: new go.Spot(1, 0, 10, -10)
+            },
+            $(go.Shape, 'RoundedRectangle',
+              {
+                fill: 'rgba(26, 77, 107, 0.9)',
+                stroke: null,
+                parameter1: 4
+              }
+            ),
+            $(go.TextBlock,
+              {
+                margin: 6,
+                stroke: 'white',
+                font: 'bold 12px sans-serif'
+              },
+              new go.Binding('text', 'length', len => len.toFixed(2) + ' m')
+            )
+          )
+        );
+
+      diagram.addModelChangedListener(evt => {
+        if (evt.isTransactionFinished) {
+          updateStatistics();
+        }
+      });
+
+      updateStatistics();
+      console.log('✓ Diagram initialized');
+    }
+
+    function initCanvas() {
+      canvas = document.getElementById('drawingCanvas');
+      ctx = canvas.getContext('2d');
+
+      // Set canvas size
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // Drawing events
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseleave', stopDrawing);
+
+      console.log('✓ Canvas initialized');
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById('canvasContainer');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+
+    // ============================================================================
+    // FREEHAND DRAWING
+    // ============================================================================
+
+    function startDrawing(e) {
+      if (!isDrawingMode) return;
+
+      isDrawing = true;
+      currentPoints = [];
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const point = { x, y };
+      currentPoints.push(point);
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#1a4d6b';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.moveTo(x, y);
+
+      console.log('✓ Started drawing');
+      showStatus('Drawing... Release to finish track');
+    }
+
+    function draw(e) {
+      if (!isDrawing || !isDrawingMode) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Add point if moved enough distance
+      const lastPoint = currentPoints[currentPoints.length - 1];
+      const distance = Math.sqrt(Math.pow(x - lastPoint.x, 2) + Math.pow(y - lastPoint.y, 2));
+
+      if (distance > 3) { // Minimum distance between points
+        currentPoints.push({ x, y });
+
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing || !isDrawingMode) return;
+
+      isDrawing = false;
+
+      if (currentPoints.length < 2) {
+        console.log('✗ Not enough points');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        showStatus('Draw track: Click and drag to create a path');
+        return;
+      }
+
+      // Simplify and snap points to grid
+      const simplifiedPoints = simplifyPath(currentPoints);
+      const snappedPoints = simplifiedPoints.map(p => {
+        // Convert canvas coordinates to diagram coordinates
+        const docPoint = canvasToDocPoint(p);
+        return snapToGrid(docPoint);
+      });
+
+      // Remove duplicate consecutive points
+      const uniquePoints = [];
+      for (let i = 0; i < snappedPoints.length; i++) {
+        if (i === 0 ||
+          snappedPoints[i].x !== snappedPoints[i - 1].x ||
+          snappedPoints[i].y !== snappedPoints[i - 1].y) {
+          uniquePoints.push(snappedPoints[i]);
+        }
+      }
+
+      if (uniquePoints.length < 2) {
+        console.log('✗ Not enough unique points after snapping');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        showStatus('Track too short. Click and drag to create a longer path');
+        return;
+      }
+
+      // Create track in GoJS
+      createTrack(uniquePoints);
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      currentPoints = [];
+
+      console.log('✓ Track created');
+    }
+
+    // ============================================================================
+    // COORDINATE CONVERSION
+    // ============================================================================
+
+    function canvasToDocPoint(canvasPoint) {
+      const diagramDiv = document.getElementById('diagramDiv');
+      const rect = diagramDiv.getBoundingClientRect();
+
+      // Canvas point is relative to canvas, convert to diagram coordinates
+      const viewPoint = new go.Point(canvasPoint.x, canvasPoint.y);
+      const docPoint = diagram.transformViewToDoc(viewPoint);
+
+      return docPoint;
+    }
+
+    function snapToGrid(point) {
+      const x = Math.round(point.x / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+      const y = Math.round(point.y / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+      return { x, y };
+    }
+
+    // ============================================================================
+    // PATH SIMPLIFICATION (Douglas-Peucker Algorithm)
+    // ============================================================================
+
+    function simplifyPath(points, tolerance = 5) {
+      if (points.length <= 2) return points;
+
+      // Find the point with maximum distance from line between first and last
+      let maxDistance = 0;
+      let maxIndex = 0;
+
+      const first = points[0];
+      const last = points[points.length - 1];
+
+      for (let i = 1; i < points.length - 1; i++) {
+        const distance = perpendicularDistance(points[i], first, last);
+        if (distance > maxDistance) {
+          maxDistance = distance;
+          maxIndex = i;
+        }
+      }
+
+      // If max distance is greater than tolerance, recursively simplify
+      if (maxDistance > tolerance) {
+        const left = simplifyPath(points.slice(0, maxIndex + 1), tolerance);
+        const right = simplifyPath(points.slice(maxIndex), tolerance);
+
+        return left.slice(0, -1).concat(right);
+      } else {
+        return [first, last];
+      }
+    }
+
+    function perpendicularDistance(point, lineStart, lineEnd) {
+      const dx = lineEnd.x - lineStart.x;
+      const dy = lineEnd.y - lineStart.y;
+
+      const numerator = Math.abs(dy * point.x - dx * point.y + lineEnd.x * lineStart.y - lineEnd.y * lineStart.x);
+      const denominator = Math.sqrt(dx * dx + dy * dy);
+
+      return numerator / denominator;
+    }
+
+    // ============================================================================
+    // TRACK CREATION
+    // ============================================================================
+
+    function createTrack(points) {
+      diagram.startTransaction('create track');
+
+      trackCounter++;
+      const newTrack = {
+        key: 'track_' + trackCounter,
+        loc: go.Point.stringify(new go.Point(0, 0)),
+        points: points,
+        length: calculateTrackLength(points)
+      };
+
+      diagram.model.addNodeData(newTrack);
+      diagram.commitTransaction('create track');
+
+      showStatus(`✓ Track created! Length: ${newTrack.length.toFixed(2)} m`, 2500);
+      updateStatistics();
+    }
+
+    function pointsToGeometry(points) {
+      if (!points || points.length < 2) {
+        return new go.Geometry();
+      }
+
+      const geo = new go.Geometry();
+      const fig = new go.PathFigure(points[0].x, points[0].y, true);
+
+      for (let i = 1; i < points.length; i++) {
+        fig.add(new go.PathSegment(go.PathSegment.Line, points[i].x, points[i].y));
+      }
+
+      geo.add(fig);
+      return geo;
+    }
+
+    function calculateTrackLength(points) {
+      if (!points || points.length < 2) return 0;
+
+      let totalLength = 0;
+      const metersPerPixel = gridSize / GRID_CELL_SIZE;
+
+      for (let i = 1; i < points.length; i++) {
+        const dx = points[i].x - points[i - 1].x;
+        const dy = points[i].y - points[i - 1].y;
+        const distancePixels = Math.sqrt(dx * dx + dy * dy);
+        totalLength += distancePixels * metersPerPixel;
+      }
+
+      return totalLength;
+    }
+
+    function recalculateAllLengths() {
+      diagram.startTransaction('recalculate');
+
+      diagram.nodes.each(node => {
+        if (node.data.points) {
+          const newLength = calculateTrackLength(node.data.points);
+          diagram.model.setDataProperty(node.data, 'length', newLength);
+        }
+      });
+
+      diagram.commitTransaction('recalculate');
+      updateStatistics();
+    }
+
+    // ============================================================================
+    // MODE CONTROL
+    // ============================================================================
+
+    function setMode(mode) {
+      const drawingCanvas = document.getElementById('drawingCanvas');
+
+      if (mode === 'select') {
+        isDrawingMode = false;
+        drawingCanvas.classList.remove('active');
+        document.getElementById('selectBtn').classList.add('active');
+        document.getElementById('pencilBtn').classList.remove('active');
+        diagram.allowSelect = true;
+        diagram.allowMove = true;
+
+        // Clear any in-progress drawing
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        isDrawing = false;
+        currentPoints = [];
+
+        showStatus('✓ Select mode: Click and drag tracks to move them', 2000);
+        console.log('Mode: SELECT');
+      } else if (mode === 'draw') {
+        isDrawingMode = true;
+        drawingCanvas.classList.add('active');
+        document.getElementById('selectBtn').classList.remove('active');
+        document.getElementById('pencilBtn').classList.add('active');
+        diagram.allowSelect = false;
+        diagram.allowMove = false;
+        diagram.clearSelection();
+
+        showStatus('✓ Draw mode: Click and drag to draw tracks');
+        console.log('Mode: DRAW - Click and drag to draw freehand');
+      }
+    }
+
+    // ============================================================================
+    // UI FUNCTIONS
+    // ============================================================================
+
+    function updateStatistics() {
+      let trackCount = 0;
+      let totalLength = 0;
+
+      diagram.nodes.each(node => {
+        trackCount++;
+        totalLength += node.data.length || 0;
+      });
+
+      document.getElementById('trackCount').textContent = trackCount;
+      document.getElementById('totalLength').textContent = totalLength.toFixed(2) + ' m';
+      document.getElementById('currentGridSize').textContent = gridSize + ' m';
+    }
+
+    function deleteSelected() {
+      const sel = diagram.selection.first();
+      if (sel) {
+        diagram.startTransaction('delete');
+        diagram.model.removeNodeData(sel.data);
+        diagram.commitTransaction('delete');
+        showStatus('Track deleted', 2000);
+      }
+    }
+
+    function clearCanvas() {
+      if (diagram.nodes.count === 0) return;
+
+      if (confirm('Clear all tracks? This cannot be undone.')) {
+        diagram.startTransaction('clear');
+        diagram.model.nodeDataArray = [];
+        diagram.commitTransaction('clear');
+        trackCounter = 0;
+        showStatus('Canvas cleared', 2000);
+      }
+    }
+
+    function updateGridSize() {
+      const input = document.getElementById('gridSizeInput');
+      const newSize = parseFloat(input.value);
+
+      if (isNaN(newSize) || newSize < 1 || newSize > 100) {
+        alert('Please enter a valid grid size between 1 and 100 meters.');
+        input.value = gridSize;
+        return;
+      }
+
+      gridSize = newSize;
+      recalculateAllLengths();
+      showStatus(`Grid size updated to ${gridSize}m`, 2000);
+    }
+
+    function showStatus(message, duration = 0) {
+      const statusEl = document.getElementById('statusMessage');
+      statusEl.textContent = message;
+      statusEl.classList.add('show');
+
+      if (window.statusTimeout) {
+        clearTimeout(window.statusTimeout);
+      }
+
+      if (duration > 0) {
+        window.statusTimeout = setTimeout(() => {
+          statusEl.classList.remove('show');
+        }, duration);
+      }
+    }
+
+    function exportSVG() {
+      const svg = diagram.makeSvg({ scale: 1, background: 'white' });
+      const svgStr = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+      downloadFile(blob, 'railway-track-design.svg');
+      showStatus('SVG exported', 2000);
+    }
+
+    function exportPNG() {
+      diagram.makeImageData({
+        scale: 2,
+        background: 'white',
+        returnType: 'blob',
+        callback: blob => {
+          downloadFile(blob, 'railway-track-design.png');
+          showStatus('PNG exported', 2000);
+        }
+      });
+    }
+
+    function downloadFile(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ============================================================================
+    // EVENT LISTENERS
+    // ============================================================================
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initDiagram();
+      initCanvas();
+
+      document.getElementById('selectBtn').addEventListener('click', () => setMode('select'));
+      document.getElementById('pencilBtn').addEventListener('click', () => setMode('draw'));
+      document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
+      document.getElementById('undoBtn').addEventListener('click', () => {
+        diagram.commandHandler.undo();
+        showStatus('Undo', 1500);
+      });
+      document.getElementById('redoBtn').addEventListener('click', () => {
+        diagram.commandHandler.redo();
+        showStatus('Redo', 1500);
+      });
+      document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+      document.getElementById('exportSvgBtn').addEventListener('click', exportSVG);
+      document.getElementById('exportPngBtn').addEventListener('click', exportPNG);
+      document.getElementById('gridSizeInput').addEventListener('change', updateGridSize);
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          setMode('select');
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && !isDrawingMode) {
+          deleteSelected();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+          e.preventDefault();
+          diagram.commandHandler.undo();
+        } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
+          e.preventDefault();
+          diagram.commandHandler.redo();
+        }
+      });
+
+      console.log('✓ Railway Track Designer ready!');
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Railway Track Designer - railML Standard</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+  <!-- GoJS Library -->
+  <script src="https://unpkg.com/gojs@3.0.2/release/go.js"></script>
+
+  <style>
+    :root {
+      --grid-color: #9db4c0;
+      --grid-bg: #e8f1f5;
+      --primary-color: #2c5f7f;
+      --track-color: #1a4d6b;
+      --highlight-color: #ff6b35;
+      --open-end-color: #000000;
+      --connection-color: #1a4d6b;
+      --buffer-stop-color: #dc3545;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container-fluid {
+      max-width: 1800px;
+    }
+
+    .card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #1a4d6b 100%);
+      color: white;
+      border-radius: 15px 15px 0 0 !important;
+      padding: 20px;
+    }
+
+    .card-header h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+
+    .card-header p {
+      margin: 5px 0 0 0;
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    .toolbar {
+      background: #f8f9fa;
+      padding: 15px;
+      border-bottom: 2px solid #e9ecef;
+      border-radius: 0;
+    }
+
+    .btn-tool {
+      border-radius: 8px;
+      padding: 8px 16px;
+      margin: 0 5px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .btn-tool:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-tool.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    .extremity-icon {
+      width: 24px;
+      height: 24px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+
+    .open-end-icon {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #000;
+      border-radius: 50%;
+      background: white;
+    }
+
+    .open-end-icon::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    .connection-icon {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--connection-color);
+      border-radius: 50%;
+      background: white;
+    }
+
+    .buffer-stop-icon {
+      width: 20px;
+      height: 6px;
+      background: var(--buffer-stop-color);
+      position: relative;
+    }
+
+    .buffer-stop-icon::before,
+    .buffer-stop-icon::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 12px;
+      background: var(--buffer-stop-color);
+      top: -3px;
+    }
+
+    .buffer-stop-icon::before {
+      left: 2px;
+    }
+
+    .buffer-stop-icon::after {
+      right: 2px;
+    }
+
+    .input-group {
+      max-width: 200px;
+    }
+
+    .input-group-text {
+      background-color: white;
+      border-right: none;
+    }
+
+    .form-control {
+      border-left: none;
+      border-radius: 8px;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(44, 95, 127, 0.25);
+    }
+
+    #canvasContainer {
+      width: 100%;
+      height: 600px;
+      position: relative;
+      border-radius: 0 0 15px 15px;
+      overflow: hidden;
+    }
+
+    #diagramDiv {
+      width: 100%;
+      height: 100%;
+      background-color: var(--grid-bg);
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #drawingCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #drawingCanvas.active {
+      pointer-events: auto;
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%231a4d6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>') 0 24, crosshair;
+    }
+
+    .context-menu {
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 8px 0;
+      z-index: 10000;
+      display: none;
+      min-width: 180px;
+    }
+
+    .context-menu-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .context-menu-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .stats-panel {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .stat-value {
+      color: var(--primary-color);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .instructions {
+      background: #e7f3ff;
+      border-left: 4px solid var(--primary-color);
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 8px;
+    }
+
+    .instructions h6 {
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .instructions ul {
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 5px;
+      color: #495057;
+    }
+
+    .divider {
+      height: 30px;
+      width: 1px;
+      background-color: #dee2e6;
+      margin: 0 10px;
+    }
+
+    .status-message {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26, 77, 107, 0.95);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      z-index: 1000;
+      display: none;
+      max-width: 80%;
+      text-align: center;
+    }
+
+    .status-message.show {
+      display: block;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    .legend-panel {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+
+    .legend-item:last-child {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      #canvasContainer {
+        height: 400px;
+      }
+
+      .btn-tool {
+        margin: 5px 2px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+      }
+
+      .toolbar {
+        padding: 10px;
+      }
+
+      .divider {
+        display: none;
+      }
+    }
+
+    .toolbar-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="card">
+      <!-- Header -->
+      <div class="card-header">
+        <h1><i class="bi bi-train-freight-front"></i> Railway Track Designer - railML Standard</h1>
+        <p>Professional railway infrastructure design with track extremities management</p>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-section">
+          <!-- Drawing Tools -->
+          <div class="btn-group" role="group" aria-label="Drawing tools">
+            <button id="selectBtn" class="btn btn-outline-primary btn-tool active" title="Select and move tracks">
+              <i class="bi bi-cursor"></i> Select
+            </button>
+            <button id="pencilBtn" class="btn btn-outline-primary btn-tool" title="Draw new track">
+              <i class="bi bi-pencil"></i> Draw Track
+            </button>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Extremity Tools -->
+          <div class="btn-group" role="group" aria-label="Extremity tools">
+            <button id="openEndBtn" class="btn btn-outline-secondary btn-tool" title="Open End" disabled>
+              <span class="extremity-icon">
+                <div class="open-end-icon"></div>
+              </span>
+              Open End
+            </button>
+            <button id="connectionBtn" class="btn btn-outline-secondary btn-tool" title="Connection" disabled>
+              <span class="extremity-icon">
+                <div class="connection-icon"></div>
+              </span>
+              Connection
+            </button>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Edit Tools -->
+          <div class="btn-group" role="group" aria-label="Edit tools">
+            <button id="undoBtn" class="btn btn-outline-secondary btn-tool" title="Undo last action">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+            <button id="redoBtn" class="btn btn-outline-secondary btn-tool" title="Redo action">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button id="deleteBtn" class="btn btn-outline-danger btn-tool" title="Delete selected track">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Grid Size Input -->
+          <div class="input-group">
+            <span class="input-group-text" title="Grid size in meters">
+              <i class="bi bi-grid-3x3"></i>
+            </span>
+            <input type="number" id="gridSizeInput" class="form-control" value="5" min="1" max="100" step="1"
+              title="Meters per grid square">
+            <span class="input-group-text">m</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Canvas Actions -->
+          <button id="clearBtn" class="btn btn-outline-warning btn-tool" title="Clear all tracks">
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+
+          <div class="divider"></div>
+
+          <!-- Export Tools -->
+          <div class="btn-group" role="group" aria-label="Export tools">
+            <button id="exportRailMLBtn" class="btn btn-outline-info btn-tool" title="Export as railML">
+              <i class="bi bi-file-code"></i> railML
+            </button>
+            <button id="exportSvgBtn" class="btn btn-outline-success btn-tool" title="Export as SVG">
+              <i class="bi bi-filetype-svg"></i> SVG
+            </button>
+            <button id="exportPngBtn" class="btn btn-outline-success btn-tool" title="Export as PNG">
+              <i class="bi bi-filetype-png"></i> PNG
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Container with overlay -->
+      <div id="canvasContainer">
+        <div id="diagramDiv"></div>
+        <canvas id="drawingCanvas"></canvas>
+        <div id="statusMessage" class="status-message"></div>
+
+        <!-- Context Menu for Extremities -->
+        <div id="contextMenu" class="context-menu">
+          <div class="context-menu-item" data-type="openEnd">
+            <span class="extremity-icon">
+              <div class="open-end-icon"></div>
+            </span>
+            <span>Open End</span>
+          </div>
+          <div class="context-menu-item" data-type="connection">
+            <span class="extremity-icon">
+              <div class="connection-icon"></div>
+            </span>
+            <span>Connection</span>
+          </div>
+          <div class="context-menu-item" data-type="bufferStop">
+            <span class="extremity-icon">
+              <div class="buffer-stop-icon"></div>
+            </span>
+            <span>Buffer Stop</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-md-6">
+        <!-- Statistics Panel -->
+        <div class="stats-panel">
+          <h5 class="mb-3"><i class="bi bi-graph-up"></i> Project Statistics</h5>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="stat-item">
+                <span class="stat-label">Total Tracks:</span>
+                <span class="stat-value" id="trackCount">0</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="stat-item">
+                <span class="stat-label">Total Length:</span>
+                <span class="stat-value" id="totalLength">0.00 m</span>
+              </div>
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-md-6">
+              <div class="stat-item">
+                <span class="stat-label">Grid Size:</span>
+                <span class="stat-value" id="currentGridSize">5 m</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="stat-item">
+                <span class="stat-label">Open Ends:</span>
+                <span class="stat-value" id="openEndCount">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <!-- Legend Panel -->
+        <div class="legend-panel">
+          <h5 class="mb-3"><i class="bi bi-info-circle"></i> Track Extremities Legend</h5>
+          <div class="legend-item">
+            <span class="extremity-icon">
+              <div class="open-end-icon"></div>
+            </span>
+            <div>
+              <strong>Open End:</strong> Track can be extended from this point
+            </div>
+          </div>
+          <div class="legend-item">
+            <span class="extremity-icon">
+              <div class="connection-icon"></div>
+            </span>
+            <div>
+              <strong>Connection:</strong> Track connects to another track or junction
+            </div>
+          </div>
+          <div class="legend-item">
+            <span class="extremity-icon">
+              <div class="buffer-stop-icon"></div>
+            </span>
+            <div>
+              <strong>Buffer Stop:</strong> End of track, cannot be extended
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <h6><i class="bi bi-book"></i> How to Use</h6>
+      <ul>
+        <li><strong>Draw Track:</strong> Click "Draw Track" button, then click points on the grid. Each track gets a
+          unique ID (1, 2, 3...). Double-click or press Enter to finish.</li>
+        <li><strong>Track Extremities:</strong> Each track automatically has extremities at both ends (default:
+          Connection type).</li>
+        <li><strong>Change Extremity Type:</strong> Right-click on the extremity circles at track ends to change between
+          Open End, Connection, or Buffer Stop.</li>
+        <li><strong>Extend Tracks:</strong> You can only extend tracks from Open End extremities. Buffer Stops prevent
+          extension.</li>
+        <li><strong>Track IDs:</strong> Each track shows its numeric ID in the middle of the track.</li>
+        <li><strong>Export railML:</strong> Export your design in railML 3.x format for professional railway systems.
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // ============================================================================
+    // RAILWAY TRACK DESIGNER - railML Standard Implementation
+    // ============================================================================
+
+    const go = window.go;
+    let diagram = null;
+    let canvas = null;
+    let ctx = null;
+    let gridSize = 5;
+    let isDrawingMode = false;
+    let currentPoints = [];
+    let trackCounter = 0;
+    const GRID_CELL_SIZE = 20;
+    let contextMenuTarget = null;
+
+    // Track extremity types
+    const ExtremityType = {
+      OPEN_END: 'openEnd',
+      CONNECTION: 'connection',
+      BUFFER_STOP: 'bufferStop'
+    };
+
+    // ============================================================================
+    // INITIALIZATION
+    // ============================================================================
+
+    function initDiagram() {
+      const $ = go.GraphObject.make;
+
+      diagram = $(go.Diagram, 'diagramDiv', {
+        'undoManager.isEnabled': true,
+        'allowCopy': false,
+        'allowTextEdit': false,
+        initialContentAlignment: go.Spot.Center,
+        padding: 20,
+
+        'grid': $(go.Panel, 'Grid',
+          {
+            gridCellSize: new go.Size(GRID_CELL_SIZE, GRID_CELL_SIZE),
+            visible: true
+          },
+          $(go.Shape, 'LineH', {
+            stroke: '#9db4c0',
+            strokeWidth: 1,
+            strokeDashArray: [1, 4]
+          }),
+          $(go.Shape, 'LineV', {
+            stroke: '#9db4c0',
+            strokeWidth: 1,
+            strokeDashArray: [1, 4]
+          })
+        )
+      });
+
+      // Track node template
+      diagram.nodeTemplate =
+        $(go.Node, 'Spot',
+          {
+            locationSpot: go.Spot.Center,
+            locationObjectName: 'SHAPE',
+            selectionAdorned: true
+          },
+          new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(go.Point.stringify),
+
+          // Main track line
+          $(go.Shape,
+            {
+              name: 'SHAPE',
+              stroke: '#1a4d6b',
+              strokeWidth: 4,
+              fill: null,
+              strokeCap: 'round',
+              strokeJoin: 'round'
+            },
+            new go.Binding('geometry', 'points', pointsToGeometry)
+          ),
+
+          // Track ID label (center)
+          $(go.TextBlock,
+            {
+              alignment: go.Spot.Center,
+              stroke: 'white',
+              background: '#1a4d6b',
+              font: 'bold 14px sans-serif',
+              margin: 4
+            },
+            new go.Binding('text', 'trackId')
+          ),
+
+          // Length label (top right)
+          $(go.Panel, 'Auto',
+            {
+              alignment: new go.Spot(1, 0, 10, -10)
+            },
+            $(go.Shape, 'RoundedRectangle',
+              {
+                fill: 'rgba(26, 77, 107, 0.9)',
+                stroke: null,
+                parameter1: 4
+              }
+            ),
+            $(go.TextBlock,
+              {
+                margin: 6,
+                stroke: 'white',
+                font: 'bold 11px sans-serif'
+              },
+              new go.Binding('text', 'length', len => len.toFixed(2) + ' m')
+            )
+          ),
+
+          // Begin extremity
+          $(go.Shape, 'Circle',
+            {
+              name: 'BEGIN_EXTREMITY',
+              alignment: go.Spot.TopLeft,
+              width: 12,
+              height: 12,
+              fill: 'white',
+              stroke: '#1a4d6b',
+              strokeWidth: 2,
+              cursor: 'context-menu'
+            },
+            new go.Binding('figure', 'beginExtremityType', getExtremityFigure),
+            new go.Binding('fill', 'beginExtremityType', getExtremityFill),
+            new go.Binding('stroke', 'beginExtremityType', getExtremityStroke),
+            new go.Binding('alignment', 'points', pts => {
+              if (!pts || pts.length === 0) return go.Spot.TopLeft;
+              const firstPt = pts[0];
+              return new go.Spot(0, 0, firstPt.x, firstPt.y);
+            })
+          ),
+
+          // End extremity
+          $(go.Shape, 'Circle',
+            {
+              name: 'END_EXTREMITY',
+              alignment: go.Spot.TopLeft,
+              width: 12,
+              height: 12,
+              fill: 'white',
+              stroke: '#1a4d6b',
+              strokeWidth: 2,
+              cursor: 'context-menu'
+            },
+            new go.Binding('figure', 'endExtremityType', getExtremityFigure),
+            new go.Binding('fill', 'endExtremityType', getExtremityFill),
+            new go.Binding('stroke', 'endExtremityType', getExtremityStroke),
+            new go.Binding('alignment', 'points', pts => {
+              if (!pts || pts.length === 0) return go.Spot.TopRight;
+              const lastPt = pts[pts.length - 1];
+              return new go.Spot(0, 0, lastPt.x, lastPt.y);
+            })
+          )
+        );
+
+      // Handle right-click on extremities
+      diagram.toolManager.contextMenuTool.mouseDownHandler = function (e) {
+        const obj = diagram.findObjectAt(e.documentPoint);
+        if (obj && (obj.name === 'BEGIN_EXTREMITY' || obj.name === 'END_EXTREMITY')) {
+          showContextMenu(e.viewPoint.x, e.viewPoint.y, obj.part.data, obj.name === 'BEGIN_EXTREMITY');
+          e.handled = true;
+        }
+      };
+
+      diagram.addModelChangedListener(evt => {
+        if (evt.isTransactionFinished) {
+          updateStatistics();
+        }
+      });
+
+      updateStatistics();
+      console.log('✓ Diagram initialized with railML support');
+    }
+
+    // ============================================================================
+    // EXTREMITY STYLING
+    // ============================================================================
+
+    function getExtremityFigure(type) {
+      switch (type) {
+        case ExtremityType.OPEN_END:
+          return 'Circle';
+        case ExtremityType.CONNECTION:
+          return 'Circle';
+        case ExtremityType.BUFFER_STOP:
+          return 'Rectangle';
+        default:
+          return 'Circle';
+      }
+    }
+
+    function getExtremityFill(type) {
+      switch (type) {
+        case ExtremityType.OPEN_END:
+          return '#000000';
+        case ExtremityType.CONNECTION:
+          return 'white';
+        case ExtremityType.BUFFER_STOP:
+          return '#dc3545';
+        default:
+          return 'white';
+      }
+    }
+
+    function getExtremityStroke(type) {
+      switch (type) {
+        case ExtremityType.OPEN_END:
+          return '#000000';
+        case ExtremityType.CONNECTION:
+          return '#1a4d6b';
+        case ExtremityType.BUFFER_STOP:
+          return '#dc3545';
+        default:
+          return '#1a4d6b';
+      }
+    }
+
+    // ============================================================================
+    // CONTEXT MENU FOR EXTREMITIES
+    // ============================================================================
+
+    function showContextMenu(x, y, trackData, isBegin) {
+      const menu = document.getElementById('contextMenu');
+      const rect = document.getElementById('diagramDiv').getBoundingClientRect();
+
+      menu.style.left = (rect.left + x) + 'px';
+      menu.style.top = (rect.top + y) + 'px';
+      menu.style.display = 'block';
+
+      contextMenuTarget = { trackData, isBegin };
+
+      console.log(`Context menu opened for ${isBegin ? 'begin' : 'end'} extremity of track ${trackData.trackId}`);
+    }
+
+    function hideContextMenu() {
+      document.getElementById('contextMenu').style.display = 'none';
+      contextMenuTarget = null;
+    }
+
+    function changeExtremityType(type) {
+      if (!contextMenuTarget) return;
+
+      const { trackData, isBegin } = contextMenuTarget;
+      const propertyName = isBegin ? 'beginExtremityType' : 'endExtremityType';
+
+      diagram.startTransaction('change extremity');
+      diagram.model.setDataProperty(trackData, propertyName, type);
+      diagram.commitTransaction('change extremity');
+
+      const typeLabel = type === ExtremityType.OPEN_END ? 'Open End' :
+        type === ExtremityType.CONNECTION ? 'Connection' : 'Buffer Stop';
+      showStatus(`${isBegin ? 'Begin' : 'End'} extremity changed to ${typeLabel}`, 2000);
+
+      hideContextMenu();
+      updateStatistics();
+    }
+
+    // ============================================================================
+    // CANVAS DRAWING
+    // ============================================================================
+
+    function initCanvas() {
+      canvas = document.getElementById('drawingCanvas');
+      ctx = canvas.getContext('2d');
+
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      canvas.addEventListener('click', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('dblclick', handleDoubleClick);
+
+      // Close context menu on click outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.context-menu') && !e.target.closest('#diagramDiv')) {
+          hideContextMenu();
+        }
+      });
+
+      console.log('✓ Canvas initialized');
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById('canvasContainer');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+
+    function startDrawing(e) {
+      if (!isDrawingMode) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const point = { x, y };
+      const docPoint = canvasToDocPoint(point);
+      const snappedPoint = snapToGrid(docPoint);
+
+      currentPoints.push(snappedPoint);
+      redrawCanvas();
+
+      console.log(`✓ Point ${currentPoints.length} added`);
+
+      if (currentPoints.length === 1) {
+        showStatus('Point 1 added. Click to add more points. Double-click or Enter to finish.');
+      } else {
+        const length = calculateTrackLength(currentPoints);
+        showStatus(`${currentPoints.length} points. Length: ${length.toFixed(2)} m. Double-click or Enter to finish.`);
+      }
+    }
+
+    function draw(e) {
+      if (!isDrawingMode || currentPoints.length === 0) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const docPoint = canvasToDocPoint({ x, y });
+      const snappedPoint = snapToGrid(docPoint);
+
+      redrawCanvas(snappedPoint);
+    }
+
+    function handleDoubleClick(e) {
+      if (!isDrawingMode) return;
+      e.preventDefault();
+      finishTrack();
+    }
+
+    function redrawCanvas(previewPoint = null) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentPoints.length === 0) return;
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#1a4d6b';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const firstCanvasPoint = docToCanvasPoint(currentPoints[0]);
+      ctx.moveTo(firstCanvasPoint.x, firstCanvasPoint.y);
+
+      for (let i = 1; i < currentPoints.length; i++) {
+        const canvasPoint = docToCanvasPoint(currentPoints[i]);
+        ctx.lineTo(canvasPoint.x, canvasPoint.y);
+      }
+
+      ctx.stroke();
+
+      // Preview line
+      if (previewPoint && currentPoints.length > 0) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(26, 77, 107, 0.5)';
+        ctx.setLineDash([5, 5]);
+        const lastCanvasPoint = docToCanvasPoint(currentPoints[currentPoints.length - 1]);
+        const previewCanvasPoint = docToCanvasPoint(previewPoint);
+        ctx.moveTo(lastCanvasPoint.x, lastCanvasPoint.y);
+        ctx.lineTo(previewCanvasPoint.x, previewCanvasPoint.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Draw points
+      ctx.fillStyle = '#1a4d6b';
+      for (let i = 0; i < currentPoints.length; i++) {
+        const canvasPoint = docToCanvasPoint(currentPoints[i]);
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function finishTrack() {
+      if (currentPoints.length < 2) {
+        showStatus('Need at least 2 points. Click to add more points.');
+        return;
+      }
+
+      createTrack(currentPoints);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      currentPoints = [];
+    }
+
+    function cancelCurrentTrack() {
+      if (currentPoints.length > 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        currentPoints = [];
+        showStatus('Track cancelled. Click to start a new track.');
+      }
+    }
+
+    // ============================================================================
+    // COORDINATE CONVERSION
+    // ============================================================================
+
+    function canvasToDocPoint(canvasPoint) {
+      const viewPoint = new go.Point(canvasPoint.x, canvasPoint.y);
+      return diagram.transformViewToDoc(viewPoint);
+    }
+
+    function docToCanvasPoint(docPoint) {
+      const viewPoint = diagram.transformDocToView(new go.Point(docPoint.x, docPoint.y));
+      return { x: viewPoint.x, y: viewPoint.y };
+    }
+
+    function snapToGrid(point) {
+      const x = Math.round(point.x / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+      const y = Math.round(point.y / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+      return { x, y };
+    }
+
+    // ============================================================================
+    // TRACK CREATION
+    // ============================================================================
+
+    function createTrack(points) {
+      diagram.startTransaction('create track');
+
+      trackCounter++;
+      const newTrack = {
+        key: 'track_' + trackCounter,
+        trackId: trackCounter,
+        loc: go.Point.stringify(new go.Point(0, 0)),
+        points: points,
+        length: calculateTrackLength(points),
+        beginExtremityType: ExtremityType.CONNECTION,
+        endExtremityType: ExtremityType.CONNECTION,
+        railMLId: `tk${trackCounter}`,
+        created: new Date().toISOString()
+      };
+
+      diagram.model.addNodeData(newTrack);
+      diagram.commitTransaction('create track');
+
+      showStatus(`✓ Track ${trackCounter} created! Length: ${newTrack.length.toFixed(2)} m`, 2500);
+      updateStatistics();
+    }
+
+    function pointsToGeometry(points) {
+      if (!points || points.length < 2) {
+        return new go.Geometry();
+      }
+
+      const geo = new go.Geometry();
+      const fig = new go.PathFigure(points[0].x, points[0].y, true);
+
+      for (let i = 1; i < points.length; i++) {
+        fig.add(new go.PathSegment(go.PathSegment.Line, points[i].x, points[i].y));
+      }
+
+      geo.add(fig);
+      return geo;
+    }
+
+    function calculateTrackLength(points) {
+      if (!points || points.length < 2) return 0;
+
+      let totalLength = 0;
+      const metersPerPixel = gridSize / GRID_CELL_SIZE;
+
+      for (let i = 1; i < points.length; i++) {
+        const dx = points[i].x - points[i - 1].x;
+        const dy = points[i].y - points[i - 1].y;
+        const distancePixels = Math.sqrt(dx * dx + dy * dy);
+        totalLength += distancePixels * metersPerPixel;
+      }
+
+      return totalLength;
+    }
+
+    function recalculateAllLengths() {
+      diagram.startTransaction('recalculate');
+
+      diagram.nodes.each(node => {
+        if (node.data.points) {
+          const newLength = calculateTrackLength(node.data.points);
+          diagram.model.setDataProperty(node.data, 'length', newLength);
+        }
+      });
+
+      diagram.commitTransaction('recalculate');
+      updateStatistics();
+    }
+
+    // ============================================================================
+    // MODE CONTROL
+    // ============================================================================
+
+    function setMode(mode) {
+      const drawingCanvas = document.getElementById('drawingCanvas');
+
+      if (mode === 'select') {
+        isDrawingMode = false;
+        drawingCanvas.classList.remove('active');
+        document.getElementById('selectBtn').classList.add('active');
+        document.getElementById('pencilBtn').classList.remove('active');
+        diagram.allowSelect = true;
+        diagram.allowMove = true;
+
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        currentPoints = [];
+
+        showStatus('✓ Select mode', 2000);
+      } else if (mode === 'draw') {
+        isDrawingMode = true;
+        drawingCanvas.classList.add('active');
+        document.getElementById('selectBtn').classList.remove('active');
+        document.getElementById('pencilBtn').classList.add('active');
+        diagram.allowSelect = false;
+        diagram.allowMove = false;
+        diagram.clearSelection();
+
+        showStatus('✓ Draw mode: Click to add points. Double-click or Enter to finish.');
+      }
+    }
+
+    // ============================================================================
+    // UI FUNCTIONS
+    // ============================================================================
+
+    function updateStatistics() {
+      let trackCount = 0;
+      let totalLength = 0;
+      let openEndCount = 0;
+
+      diagram.nodes.each(node => {
+        trackCount++;
+        totalLength += node.data.length || 0;
+        if (node.data.beginExtremityType === ExtremityType.OPEN_END) openEndCount++;
+        if (node.data.endExtremityType === ExtremityType.OPEN_END) openEndCount++;
+      });
+
+      document.getElementById('trackCount').textContent = trackCount;
+      document.getElementById('totalLength').textContent = totalLength.toFixed(2) + ' m';
+      document.getElementById('currentGridSize').textContent = gridSize + ' m';
+      document.getElementById('openEndCount').textContent = openEndCount;
+    }
+
+    function deleteSelected() {
+      const sel = diagram.selection.first();
+      if (sel) {
+        diagram.startTransaction('delete');
+        diagram.model.removeNodeData(sel.data);
+        diagram.commitTransaction('delete');
+        showStatus('Track deleted', 2000);
+      }
+    }
+
+    function clearCanvas() {
+      if (diagram.nodes.count === 0) return;
+
+      if (confirm('Clear all tracks? This cannot be undone.')) {
+        diagram.startTransaction('clear');
+        diagram.model.nodeDataArray = [];
+        diagram.commitTransaction('clear');
+        trackCounter = 0;
+        showStatus('Canvas cleared', 2000);
+      }
+    }
+
+    function updateGridSize() {
+      const input = document.getElementById('gridSizeInput');
+      const newSize = parseFloat(input.value);
+
+      if (isNaN(newSize) || newSize < 1 || newSize > 100) {
+        alert('Please enter a valid grid size between 1 and 100 meters.');
+        input.value = gridSize;
+        return;
+      }
+
+      gridSize = newSize;
+      recalculateAllLengths();
+      showStatus(`Grid size updated to ${gridSize}m`, 2000);
+    }
+
+    function showStatus(message, duration = 0) {
+      const statusEl = document.getElementById('statusMessage');
+      statusEl.textContent = message;
+      statusEl.classList.add('show');
+
+      if (window.statusTimeout) {
+        clearTimeout(window.statusTimeout);
+      }
+
+      if (duration > 0) {
+        window.statusTimeout = setTimeout(() => {
+          statusEl.classList.remove('show');
+        }, duration);
+      }
+    }
+
+    // ============================================================================
+    // EXPORT FUNCTIONS
+    // ============================================================================
+
+    function exportRailML() {
+      const tracks = [];
+
+      diagram.nodes.each(node => {
+        const data = node.data;
+        tracks.push({
+          id: data.railMLId || `tk${data.trackId}`,
+          trackId: data.trackId,
+          length: data.length,
+          beginExtremity: {
+            type: data.beginExtremityType,
+            position: data.points[0]
+          },
+          endExtremity: {
+            type: data.endExtremityType,
+            position: data.points[data.points.length - 1]
+          },
+          geometry: data.points,
+          created: data.created
+        });
+      });
+
+      const railMLData = {
+        railML: {
+          version: '3.2',
+          infrastructure: {
+            tracks: tracks,
+            gridSize: gridSize,
+            gridUnit: 'meters',
+            exportDate: new Date().toISOString()
+          }
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(railMLData, null, 2)], { type: 'application/json' });
+      downloadFile(blob, 'railway-design-railml.json');
+      showStatus('railML exported', 2000);
+    }
+
+    function exportSVG() {
+      const svg = diagram.makeSvg({ scale: 1, background: 'white' });
+      const svgStr = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+      downloadFile(blob, 'railway-track-design.svg');
+      showStatus('SVG exported', 2000);
+    }
+
+    function exportPNG() {
+      diagram.makeImageData({
+        scale: 2,
+        background: 'white',
+        returnType: 'blob',
+        callback: blob => {
+          downloadFile(blob, 'railway-track-design.png');
+          showStatus('PNG exported', 2000);
+        }
+      });
+    }
+
+    function downloadFile(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ============================================================================
+    // EVENT LISTENERS
+    // ============================================================================
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initDiagram();
+      initCanvas();
+
+      // Mode buttons
+      document.getElementById('selectBtn').addEventListener('click', () => setMode('select'));
+      document.getElementById('pencilBtn').addEventListener('click', () => setMode('draw'));
+
+      // Edit buttons
+      document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
+      document.getElementById('undoBtn').addEventListener('click', () => {
+        diagram.commandHandler.undo();
+        showStatus('Undo', 1500);
+      });
+      document.getElementById('redoBtn').addEventListener('click', () => {
+        diagram.commandHandler.redo();
+        showStatus('Redo', 1500);
+      });
+      document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+
+      // Export buttons
+      document.getElementById('exportRailMLBtn').addEventListener('click', exportRailML);
+      document.getElementById('exportSvgBtn').addEventListener('click', exportSVG);
+      document.getElementById('exportPngBtn').addEventListener('click', exportPNG);
+
+      // Grid size
+      document.getElementById('gridSizeInput').addEventListener('change', updateGridSize);
+
+      // Context menu items
+      document.querySelectorAll('.context-menu-item').forEach(item => {
+        item.addEventListener('click', function () {
+          const type = this.getAttribute('data-type');
+          changeExtremityType(type);
+        });
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (isDrawingMode && currentPoints.length > 0) {
+            cancelCurrentTrack();
+          } else {
+            setMode('select');
+          }
+        } else if (e.key === 'Enter' && isDrawingMode && currentPoints.length >= 2) {
+          e.preventDefault();
+          finishTrack();
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && !isDrawingMode) {
+          e.preventDefault();
+          deleteSelected();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+          e.preventDefault();
+          diagram.commandHandler.undo();
+        } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
+          e.preventDefault();
+          diagram.commandHandler.redo();
+        }
+      });
+
+      console.log('✓ Railway Track Designer with railML ready!');
+    });
+  </script>
+</body>
+
+</html>

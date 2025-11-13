@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoJS & AG-Grid Complete Course</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <!-- GoJS Library -->
+  <script src="https://unpkg.com/gojs@2.3.17/release/go.js"></script>
+
+  <!-- AG-Grid Community -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@30.0.0/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@30.0.0/styles/ag-grid.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@30.0.0/styles/ag-theme-alpine.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 80px;
+      height: fit-content;
+    }
+
+    .nav-link-custom {
+      transition: all 0.3s ease;
+      border-radius: 8px;
+      padding: 10px 15px;
+      color: #495057;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .nav-link-custom:hover {
+      background-color: #e7f1ff;
+      color: #0d6efd;
+      transform: translateX(5px);
+    }
+
+    .section-card {
+      transition: all 0.3s ease;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .header-gradient {
+      background: var(--primary-gradient);
+    }
+
+    .btn-custom {
+      transition: all 0.3s ease;
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .diagram-container {
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+    }
+
+    .feature-box {
+      background-color: #f8f9fa;
+      border-left: 4px solid #0d6efd;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .footer-custom {
+      background-color: #212529;
+      color: #adb5bd;
+      padding: 2rem 0;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header-gradient text-white shadow sticky-top">
+    <div class="container py-4">
+      <h1 class="display-4 fw-bold mb-2">GoJS & AG-Grid Complete Course</h1>
+      <p class="lead opacity-75">Master diagramming and data grids with practical examples</p>
+    </div>
+  </header>
+
+  <div class="container-fluid py-4">
+    <div class="row g-4">
+      <!-- Sidebar Navigation -->
+      <aside class="col-lg-3 col-md-4">
+        <div class="card shadow-sm sidebar">
+          <div class="card-body">
+            <h2 class="h5 fw-bold mb-3">Course Content</h2>
+            <nav>
+              <a href="#gojs-intro" class="nav-link-custom">
+                <i class="bi bi-diagram-3 me-2"></i>GoJS Introduction
+              </a>
+              <a href="#gojs-basic" class="nav-link-custom">
+                <i class="bi bi-circle me-2"></i>GoJS Basic Diagram
+              </a>
+              <a href="#gojs-flowchart" class="nav-link-custom">
+                <i class="bi bi-diagram-2 me-2"></i>GoJS Flowchart
+              </a>
+              <a href="#gojs-org-chart" class="nav-link-custom">
+                <i class="bi bi-diagram-3-fill me-2"></i>GoJS Org Chart
+              </a>
+              <a href="#gojs-interactive" class="nav-link-custom">
+                <i class="bi bi-cursor me-2"></i>GoJS Interactive
+              </a>
+              <a href="#aggrid-intro" class="nav-link-custom">
+                <i class="bi bi-table me-2"></i>AG-Grid Introduction
+              </a>
+              <a href="#aggrid-basic" class="nav-link-custom">
+                <i class="bi bi-grid me-2"></i>AG-Grid Basic
+              </a>
+              <a href="#aggrid-sorting" class="nav-link-custom">
+                <i class="bi bi-filter me-2"></i>AG-Grid Sorting & Filter
+              </a>
+              <a href="#aggrid-editing" class="nav-link-custom">
+                <i class="bi bi-pencil me-2"></i>AG-Grid Editing
+              </a>
+              <a href="#aggrid-advanced" class="nav-link-custom">
+                <i class="bi bi-star me-2"></i>AG-Grid Advanced
+              </a>
+              <a href="#integration" class="nav-link-custom">
+                <i class="bi bi-link-45deg me-2"></i>Integration Example
+              </a>
+            </nav>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="col-lg-9 col-md-8">
+        <!-- GoJS Section -->
+        <section id="gojs-intro" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">GoJS Introduction</h2>
+              <p class="card-text text-muted mb-4">GoJS is a powerful JavaScript library for creating interactive
+                diagrams, flowcharts, organizational charts, and more. It provides a rich set of features for building
+                complex visualizations.</p>
+
+              <div class="feature-box">
+                <h3 class="h6 fw-bold text-primary mb-3">Key Features:</h3>
+                <ul class="mb-0">
+                  <li>Node and link templates</li>
+                  <li>Data binding</li>
+                  <li>Interactive editing</li>
+                  <li>Layout algorithms</li>
+                  <li>Event handling</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GoJS Basic Diagram -->
+        <section id="gojs-basic" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">GoJS Basic Diagram</h2>
+              <p class="card-text text-muted mb-4">Let's start with a simple diagram showing basic nodes and
+                connections.</p>
+
+              <div class="mb-3">
+                <button onclick="resetBasicDiagram()" class="btn btn-primary btn-custom">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Reset Diagram
+                </button>
+              </div>
+
+              <div id="basicDiagram" class="diagram-container" style="width: 100%; height: 400px;"></div>
+
+              <div class="mt-4">
+                <h3 class="h5 fw-bold mb-3">Code Example:</h3>
+                <div class="code-block">
+                  <pre>const $ = go.GraphObject.make;
+const diagram = $(go.Diagram, "basicDiagram");
+
+diagram.nodeTemplate = $(go.Node, "Auto",
+    $(go.Shape, "RoundedRectangle", 
+        { fill: "lightblue", stroke: "blue" }),
+    $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "key"))
+);
+
+diagram.model = new go.GraphLinksModel([
+    { key: "Node 1" },
+    { key: "Node 2" },
+    { key: "Node 3" }
+], [
+    { from: "Node 1", to: "Node 2" },
+    { from: "Node 2", to: "Node 3" }
+]);</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GoJS Flowchart -->
+        <section id="gojs-flowchart" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">GoJS Flowchart</h2>
+              <p class="card-text text-muted mb-4">Create a professional flowchart with different node types and
+                decision points.</p>
+
+              <div class="mb-3">
+                <button onclick="addFlowchartNode()" class="btn btn-success btn-custom me-2">
+                  <i class="bi bi-plus-circle me-1"></i>Add Node
+                </button>
+                <button onclick="resetFlowchart()" class="btn btn-danger btn-custom">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                </button>
+              </div>
+
+              <div id="flowchartDiagram" class="diagram-container" style="width: 100%; height: 500px;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GoJS Org Chart -->
+        <section id="gojs-org-chart" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">GoJS Organizational Chart</h2>
+              <p class="card-text text-muted mb-4">Build hierarchical organizational structures with automatic layout.
+              </p>
+
+              <div class="mb-3">
+                <button onclick="expandOrgChart()" class="btn btn-purple btn-custom me-2"
+                  style="background-color: #6f42c1; color: white;">
+                  <i class="bi bi-arrows-expand me-1"></i>Expand All
+                </button>
+                <button onclick="collapseOrgChart()" class="btn btn-custom"
+                  style="background-color: #6610f2; color: white;">
+                  <i class="bi bi-arrows-collapse me-1"></i>Collapse All
+                </button>
+              </div>
+
+              <div id="orgChartDiagram" class="diagram-container" style="width: 100%; height: 500px;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GoJS Interactive -->
+        <section id="gojs-interactive" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">GoJS Interactive Features</h2>
+              <p class="card-text text-muted mb-4">Drag, drop, resize, and connect nodes interactively.</p>
+
+              <div class="alert alert-warning mb-4" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Try these actions:</strong> Drag nodes, draw links between nodes, double-click to edit text,
+                resize nodes
+              </div>
+
+              <div id="interactiveDiagram" class="diagram-container mb-3" style="width: 100%; height: 500px;"></div>
+
+              <div>
+                <h3 class="h6 fw-bold mb-2">Event Log:</h3>
+                <div id="eventLog" class="border rounded p-3 bg-light"
+                  style="height: 130px; overflow-y: auto; font-size: 0.875rem;"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AG-Grid Introduction -->
+        <section id="aggrid-intro" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">AG-Grid Introduction</h2>
+              <p class="card-text text-muted mb-4">AG-Grid is a feature-rich data grid designed for major JavaScript
+                frameworks. It provides enterprise-level functionality for displaying and manipulating tabular data.</p>
+
+              <div class="feature-box" style="border-left-color: #198754;">
+                <h3 class="h6 fw-bold text-success mb-3">Key Features:</h3>
+                <ul class="mb-0">
+                  <li>Sorting, filtering, and pagination</li>
+                  <li>Cell editing and validation</li>
+                  <li>Column grouping and pivoting</li>
+                  <li>Custom cell renderers</li>
+                  <li>Export to CSV/Excel</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AG-Grid Basic -->
+        <section id="aggrid-basic" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">AG-Grid Basic Grid</h2>
+              <p class="card-text text-muted mb-4">Simple grid with basic column definitions and data.</p>
+
+              <div id="basicGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
+
+              <div class="mt-4">
+                <h3 class="h5 fw-bold mb-3">Code Example:</h3>
+                <div class="code-block">
+                  <pre>const gridOptions = {
+    columnDefs: [
+        { field: 'make' },
+        { field: 'model' },
+        { field: 'price' }
+    ],
+    rowData: [
+        { make: 'Toyota', model: 'Celica', price: 35000 },
+        { make: 'Ford', model: 'Mondeo', price: 32000 }
+    ]
+};
+
+new agGrid.Grid(divElement, gridOptions);</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AG-Grid Sorting & Filtering -->
+        <section id="aggrid-sorting" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">AG-Grid Sorting & Filtering</h2>
+              <p class="card-text text-muted mb-4">Enable sorting and filtering capabilities with floating filters.</p>
+
+              <div class="mb-3">
+                <button onclick="clearFilters()" class="btn btn-primary btn-custom me-2">
+                  <i class="bi bi-x-circle me-1"></i>Clear Filters
+                </button>
+                <button onclick="exportToCSV()" class="btn btn-success btn-custom">
+                  <i class="bi bi-download me-1"></i>Export CSV
+                </button>
+              </div>
+
+              <div id="filterGrid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AG-Grid Editing -->
+        <section id="aggrid-editing" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">AG-Grid Cell Editing</h2>
+              <p class="card-text text-muted mb-4">Edit cells directly with different editor types and validation.</p>
+
+              <div class="alert alert-info mb-4" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Instructions:</strong> Click on any cell to edit. Press Enter to save, Escape to cancel.
+              </div>
+
+              <div class="mb-3">
+                <button onclick="addNewRow()" class="btn btn-success btn-custom me-2">
+                  <i class="bi bi-plus-circle me-1"></i>Add Row
+                </button>
+                <button onclick="deleteSelectedRows()" class="btn btn-danger btn-custom">
+                  <i class="bi bi-trash me-1"></i>Delete Selected
+                </button>
+              </div>
+
+              <div id="editGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AG-Grid Advanced -->
+        <section id="aggrid-advanced" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">AG-Grid Advanced Features</h2>
+              <p class="card-text text-muted mb-4">Custom cell renderers, grouped columns, and aggregation.</p>
+
+              <div id="advancedGrid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Integration Example -->
+        <section id="integration" class="mb-5">
+          <div class="card section-card">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">GoJS & AG-Grid Integration</h2>
+              <p class="card-text text-muted mb-4">Combining both libraries: Select rows in the grid to highlight nodes
+                in the diagram.</p>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <h3 class="h6 fw-bold mb-2">Employee Grid</h3>
+                  <div id="integrationGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
+                </div>
+                <div class="col-md-6">
+                  <h3 class="h6 fw-bold mb-2">Organization Diagram</h3>
+                  <div id="integrationDiagram" class="diagram-container" style="width: 100%; height: 400px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section class="mb-5">
+          <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body p-4">
+              <h2 class="card-title h3 fw-bold mb-3">Course Summary</h2>
+              <p class="mb-4">Congratulations! You've completed the GoJS and AG-Grid course. You now have the knowledge
+                to:</p>
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <div class="bg-white bg-opacity-25 rounded p-3">
+                    <h3 class="h5 fw-bold mb-3">GoJS Skills</h3>
+                    <ul class="mb-0">
+                      <li>Create interactive diagrams</li>
+                      <li>Build flowcharts and org charts</li>
+                      <li>Handle user interactions</li>
+                      <li>Apply custom layouts</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="bg-white bg-opacity-25 rounded p-3">
+                    <h3 class="h5 fw-bold mb-3">AG-Grid Skills</h3>
+                    <ul class="mb-0">
+                      <li>Display tabular data efficiently</li>
+                      <li>Implement sorting and filtering</li>
+                      <li>Enable cell editing</li>
+                      <li>Create custom cell renderers</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer-custom text-center">
+    <div class="container">
+      <p class="mb-3">GoJS & AG-Grid Complete Course | © 2025</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="https://gojs.net/" target="_blank" class="text-info text-decoration-none">
+          <i class="bi bi-box-arrow-up-right me-1"></i>GoJS Documentation
+        </a>
+        <a href="https://www.ag-grid.com/" target="_blank" class="text-success text-decoration-none">
+          <i class="bi bi-box-arrow-up-right me-1"></i>AG-Grid Documentation
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // GoJS instances
+    let basicDiagram, flowchartDiagram, orgChartDiagram, interactiveDiagram, integrationDiagram;
+
+    // AG-Grid instances
+    let basicGridApi, filterGridApi, editGridApi, advancedGridApi, integrationGridApi;
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+      initBasicDiagram();
+      initFlowchart();
+      initOrgChart();
+      initInteractiveDiagram();
+      initBasicGrid();
+      initFilterGrid();
+      initEditGrid();
+      initAdvancedGrid();
+      initIntegration();
+    });
+
+    // ===== GoJS Functions =====
+
+    function initBasicDiagram() {
+      const $ = go.GraphObject.make;
+      basicDiagram = $(go.Diagram, "basicDiagram", {
+        "undoManager.isEnabled": true,
+        layout: $(go.LayeredDigraphLayout)
+      });
+
+      basicDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          $(go.Shape, "RoundedRectangle",
+            { fill: "lightblue", stroke: "blue", strokeWidth: 2 }),
+          $(go.TextBlock,
+            { margin: 12, font: "bold 16px sans-serif" },
+            new go.Binding("text", "key"))
+        );
+
+      basicDiagram.linkTemplate =
+        $(go.Link,
+          { routing: go.Link.Orthogonal, corner: 5 },
+          $(go.Shape, { strokeWidth: 2 }),
+          $(go.Shape, { toArrow: "Standard" })
+        );
+
+      basicDiagram.model = new go.GraphLinksModel([
+        { key: "Start" },
+        { key: "Process" },
+        { key: "End" }
+      ], [
+        { from: "Start", to: "Process" },
+        { from: "Process", to: "End" }
+      ]);
+    }
+
+    function resetBasicDiagram() {
+      initBasicDiagram();
+    }
+
+    function initFlowchart() {
+      const $ = go.GraphObject.make;
+      flowchartDiagram = $(go.Diagram, "flowchartDiagram", {
+        "undoManager.isEnabled": true,
+        layout: $(go.TreeLayout, { angle: 90, layerSpacing: 35 })
+      });
+
+      flowchartDiagram.nodeTemplateMap.add("",
+        $(go.Node, "Auto",
+          $(go.Shape, "RoundedRectangle",
+            { fill: "#4CAF50", stroke: "#2E7D32", strokeWidth: 2 },
+            new go.Binding("fill", "color")),
+          $(go.TextBlock,
+            { margin: 10, stroke: "white", font: "bold 14px sans-serif" },
+            new go.Binding("text", "text"))
+        )
+      );
+
+      flowchartDiagram.nodeTemplateMap.add("decision",
+        $(go.Node, "Auto",
+          $(go.Shape, "Diamond",
+            { fill: "#FF9800", stroke: "#F57C00", strokeWidth: 2 }),
+          $(go.TextBlock,
+            { margin: 10, stroke: "white", font: "bold 12px sans-serif" },
+            new go.Binding("text", "text"))
+        )
+      );
+
+      flowchartDiagram.linkTemplate =
+        $(go.Link,
+          { routing: go.Link.Orthogonal, corner: 5 },
+          $(go.Shape, { strokeWidth: 2, stroke: "#555" }),
+          $(go.Shape, { toArrow: "Standard", fill: "#555", stroke: null }),
+          $(go.TextBlock,
+            { segmentOffset: new go.Point(0, -10), font: "10px sans-serif" },
+            new go.Binding("text", "label"))
+        );
+
+      flowchartDiagram.model = new go.GraphLinksModel([
+        { key: 1, text: "Start", color: "#2196F3" },
+        { key: 2, text: "Initialize", color: "#4CAF50" },
+        { key: 3, text: "Is Valid?", category: "decision" },
+        { key: 4, text: "Process Data", color: "#4CAF50" },
+        { key: 5, text: "Show Error", color: "#F44336" },
+        { key: 6, text: "End", color: "#9E9E9E" }
+      ], [
+        { from: 1, to: 2 },
+        { from: 2, to: 3 },
+        { from: 3, to: 4, label: "Yes" },
+        { from: 3, to: 5, label: "No" },
+        { from: 4, to: 6 },
+        { from: 5, to: 6 }
+      ]);
+    }
+
+    function addFlowchartNode() {
+      const model = flowchartDiagram.model;
+      flowchartDiagram.startTransaction("add node");
+      const newKey = model.nodeDataArray.length + 1;
+      model.addNodeData({ key: newKey, text: "New Step", color: "#9C27B0" });
+      flowchartDiagram.commitTransaction("add node");
+    }
+
+    function resetFlowchart() {
+      initFlowchart();
+    }
+
+    function initOrgChart() {
+      const $ = go.GraphObject.make;
+      orgChartDiagram = $(go.Diagram, "orgChartDiagram", {
+        "undoManager.isEnabled": true,
+        layout: $(go.TreeLayout, {
+          treeStyle: go.TreeLayout.StyleLastParents,
+          arrangement: go.TreeLayout.ArrangementHorizontal,
+          angle: 90,
+          layerSpacing: 35,
+          alternateAngle: 90,
+          alternateLayerSpacing: 35,
+          alternateAlignment: go.TreeLayout.AlignmentBus,
+          alternateNodeSpacing: 20
+        }),
+        "toolManager.hoverDelay": 100
+      });
+
+      orgChartDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          {
+            doubleClick: (e, node) => {
+              const diagram = node.diagram;
+              diagram.startTransaction("toggle");
+              const data = node.data;
+              diagram.model.setDataProperty(data, "isTreeExpanded", !data.isTreeExpanded);
+              diagram.commitTransaction("toggle");
+            }
+          },
+          $(go.Shape, "RoundedRectangle",
+            { fill: "white", stroke: "#3F51B5", strokeWidth: 2 },
+            new go.Binding("fill", "isHighlighted", h => h ? "#FFEB3B" : "white").ofObject()),
+          $(go.Panel, "Vertical",
+            { margin: 8 },
+            $(go.TextBlock,
+              { font: "bold 14px sans-serif", stroke: "#3F51B5" },
+              new go.Binding("text", "name")),
+            $(go.TextBlock,
+              { font: "12px sans-serif", stroke: "#757575" },
+              new go.Binding("text", "title"))
+          )
+        );
+
+      orgChartDiagram.linkTemplate =
+        $(go.Link,
+          { routing: go.Link.Orthogonal, corner: 5 },
+          $(go.Shape, { strokeWidth: 1.5, stroke: "#BDBDBD" })
+        );
+
+      orgChartDiagram.model = new go.TreeModel([
+        { key: 1, name: "John Smith", title: "CEO" },
+        { key: 2, name: "Sarah Johnson", title: "CTO", parent: 1 },
+        { key: 3, name: "Mike Davis", title: "CFO", parent: 1 },
+        { key: 4, name: "Emily Brown", title: "Lead Developer", parent: 2 },
+        { key: 5, name: "David Wilson", title: "DevOps Engineer", parent: 2 },
+        { key: 6, name: "Lisa Anderson", title: "Accountant", parent: 3 },
+        { key: 7, name: "James Taylor", title: "Frontend Dev", parent: 4 },
+        { key: 8, name: "Anna Martinez", title: "Backend Dev", parent: 4 }
+      ]);
+    }
+
+    function expandOrgChart() {
+      orgChartDiagram.startTransaction("expand all");
+      orgChartDiagram.nodes.each(node => {
+        orgChartDiagram.model.setDataProperty(node.data, "isTreeExpanded", true);
+      });
+      orgChartDiagram.commitTransaction("expand all");
+    }
+
+    function collapseOrgChart() {
+      orgChartDiagram.startTransaction("collapse all");
+      orgChartDiagram.nodes.each(node => {
+        if (node.data.key !== 1) {
+          orgChartDiagram.model.setDataProperty(node.data, "isTreeExpanded", false);
+        }
+      });
+      orgChartDiagram.commitTransaction("collapse all");
+    }
+
+    function initInteractiveDiagram() {
+      const $ = go.GraphObject.make;
+      interactiveDiagram = $(go.Diagram, "interactiveDiagram", {
+        "undoManager.isEnabled": true,
+        "linkingTool.isEnabled": true,
+        "relinkingTool.isEnabled": true,
+        allowDrop: true
+      });
+
+      interactiveDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          {
+            locationSpot: go.Spot.Center,
+            resizable: true,
+            resizeObjectName: "SHAPE"
+          },
+          $(go.Shape, "RoundedRectangle",
+            {
+              name: "SHAPE",
+              fill: "lightgreen",
+              stroke: "darkgreen",
+              strokeWidth: 2,
+              minSize: new go.Size(80, 60)
+            }),
+          $(go.TextBlock,
+            {
+              margin: 8,
+              editable: true,
+              font: "bold 14px sans-serif"
+            },
+            new go.Binding("text", "text").makeTwoWay())
+        );
+
+      interactiveDiagram.linkTemplate =
+        $(go.Link,
+          { relinkableFrom: true, relinkableTo: true },
+          $(go.Shape, { strokeWidth: 2 }),
+          $(go.Shape, { toArrow: "Standard" })
+        );
+
+      interactiveDiagram.model = new go.GraphLinksModel([
+        { key: 1, text: "Drag Me" },
+        { key: 2, text: "Edit Me" },
+        { key: 3, text: "Resize Me" }
+      ], [
+        { from: 1, to: 2 }
+      ]);
+
+      // Event logging
+      interactiveDiagram.addDiagramListener("SelectionMoved", e => {
+        logEvent("Node moved");
+      });
+
+      interactiveDiagram.addDiagramListener("LinkDrawn", e => {
+        logEvent("Link created");
+      });
+
+      interactiveDiagram.addDiagramListener("TextEdited", e => {
+        logEvent("Text edited: " + e.subject.text);
+      });
+    }
+
+    function logEvent(message) {
+      const log = document.getElementById('eventLog');
+      const time = new Date().toLocaleTimeString();
+      log.innerHTML = `[${time}] ${message}<br>` + log.innerHTML;
+    }
+
+    // ===== AG-Grid Functions =====
+
+    function initBasicGrid() {
+      const gridOptions = {
+        columnDefs: [
+          { field: 'make', headerName: 'Make', sortable: true },
+          { field: 'model', headerName: 'Model', sortable: true },
+          { field: 'price', headerName: 'Price', sortable: true, valueFormatter: params => '$' + params.value.toLocaleString() }
+        ],
+        rowData: [
+          { make: 'Toyota', model: 'Celica', price: 35000 },
+          { make: 'Ford', model: 'Mondeo', price: 32000 },
+          { make: 'Porsche', model: 'Boxster', price: 72000 },
+          { make: 'BMW', model: 'M3', price: 65000 },
+          { make: 'Audi', model: 'A4', price: 45000 }
+        ],
+        defaultColDef: {
+          flex: 1,
+          minWidth: 100
+        }
+      };
+
+      const gridDiv = document.querySelector('#basicGrid');
+      basicGridApi = agGrid.createGrid(gridDiv, gridOptions);
+    }
+
+    function initFilterGrid() {
+      const gridOptions = {
+        columnDefs: [
+          { field: 'athlete', filter: 'agTextColumnFilter', floatingFilter: true },
+          { field: 'age', filter: 'agNumberColumnFilter', floatingFilter: true },
+          { field: 'country', filter: 'agTextColumnFilter', floatingFilter: true },
+          { field: 'year', filter: 'agNumberColumnFilter', floatingFilter: true },
+          { field: 'sport', filter: 'agTextColumnFilter', floatingFilter: true },
+          { field: 'gold', filter: 'agNumberColumnFilter', floatingFilter: true },
+          { field: 'silver', filter: 'agNumberColumnFilter', floatingFilter: true },
+          { field: 'bronze', filter: 'agNumberColumnFilter', floatingFilter: true }
+        ],
+        rowData: [
+          { athlete: 'Michael Phelps', age: 23, country: 'United States', year: 2008, sport: 'Swimming', gold: 8, silver: 0, bronze: 0 },
+          { athlete: 'Usain Bolt', age: 26, country: 'Jamaica', year: 2012, sport: 'Athletics', gold: 3, silver: 0, bronze: 0 },
+          { athlete: 'Katie Ledecky', age: 19, country: 'United States', year: 2016, sport: 'Swimming', gold: 4, silver: 1, bronze: 0 },
+          { athlete: 'Simone Biles', age: 19, country: 'United States', year: 2016, sport: 'Gymnastics', gold: 4, silver: 0, bronze: 1 },
+          { athlete: 'Mo Farah', age: 29, country: 'Great Britain', year: 2012, sport: 'Athletics', gold: 2, silver: 0, bronze: 0 },
+          { athlete: 'Allyson Felix', age: 26, country: 'United States', year: 2012, sport: 'Athletics', gold: 3, silver: 0, bronze: 0 },
+          { athlete: 'Ryan Lochte', age: 28, country: 'United States', year: 2012, sport: 'Swimming', gold: 2, silver: 2, bronze: 1 }
+        ],
+        defaultColDef: {
+          flex: 1,
+          minWidth: 100,
+          sortable: true,
+          resizable: true
+        },
+        pagination: true,
+        paginationPageSize: 5
+      };
+
+      const gridDiv = document.querySelector('#filterGrid');
+      filterGridApi = agGrid.createGrid(gridDiv, gridOptions);
+    }
+
+    function clearFilters() {
+      if (filterGridApi) {
+        filterGridApi.setFilterModel(null);
+      }
+    }
+
+    function exportToCSV() {
+      if (filterGridApi) {
+        filterGridApi.exportDataAsCsv();
+      }
+    }
+
+    function initEditGrid() {
+      const gridOptions = {
+        columnDefs: [
+          {
+            field: 'id',
+            headerName: 'ID',
+            checkboxSelection: true,
+            headerCheckboxSelection: true,
+            width: 80
+          },
+          { field: 'name', headerName: 'Name', editable: true },
+          { field: 'email', headerName: 'Email', editable: true },
+          {
+            field: 'age',
+            headerName: 'Age',
+            editable: true,
+            cellEditor: 'agNumberCellEditor',
+            cellEditorParams: { min: 18, max: 100 }
+          },
+          {
+            field: 'status',
+            headerName: 'Status',
+            editable: true,
+            cellEditor: 'agSelectCellEditor',
+            cellEditorParams: {
+              values: ['Active', 'Inactive', 'Pending']
+            }
+          }
+        ],
+        rowData: [
+          { id: 1, name: 'John Doe', email: 'john@example.com', age: 30, status: 'Active' },
+          { id: 2, name: 'Jane Smith', email: 'jane@example.com', age: 28, status: 'Active' },
+          { id: 3, name: 'Bob Johnson', email: 'bob@example.com', age: 35, status: 'Inactive' }
+        ],
+        defaultColDef: {
+          flex: 1,
+          minWidth: 100,
+          resizable: true
+        },
+        rowSelection: 'multiple',
+        onCellValueChanged: (event) => {
+          console.log('Cell value changed:', event.data);
+        }
+      };
+
+      const gridDiv = document.querySelector('#editGrid');
+      editGridApi = agGrid.createGrid(gridDiv, gridOptions);
+    }
+
+    function addNewRow() {
+      if (editGridApi) {
+        const newId = editGridApi.getDisplayedRowCount() + 1;
+        const newRow = {
+          id: newId,
+          name: 'New User',
+          email: 'new@example.com',
+          age: 25,
+          status: 'Pending'
+        };
+        editGridApi.applyTransaction({ add: [newRow] });
+      }
+    }
+
+    function deleteSelectedRows() {
+      if (editGridApi) {
+        const selectedRows = editGridApi.getSelectedRows();
+        if (selectedRows.length > 0) {
+          editGridApi.applyTransaction({ remove: selectedRows });
+        } else {
+          alert('Please select rows to delete');
+        }
+      }
+    }
+
+    function initAdvancedGrid() {
+      const gridOptions = {
+        columnDefs: [
+          {
+            field: 'product',
+            headerName: 'Product',
+            rowGroup: false,
+            enableRowGroup: true
+          },
+          {
+            field: 'category',
+            headerName: 'Category',
+            rowGroup: false,
+            enableRowGroup: true
+          },
+          {
+            field: 'quantity',
+            headerName: 'Quantity',
+            aggFunc: 'sum',
+            enableValue: true
+          },
+          {
+            field: 'price',
+            headerName: 'Price',
+            valueFormatter: params => '$' + params.value.toFixed(2),
+            aggFunc: 'avg',
+            enableValue: true
+          },
+          {
+            field: 'total',
+            headerName: 'Total',
+            valueGetter: params => {
+              return params.data.quantity * params.data.price;
+            },
+            valueFormatter: params => '$' + params.value.toFixed(2),
+            aggFunc: 'sum',
+            enableValue: true,
+            cellStyle: params => {
+              if (params.value > 1000) {
+                return { backgroundColor: '#d4edda', fontWeight: 'bold' };
+              }
+              return null;
+            }
+          },
+          {
+            field: 'status',
+            headerName: 'Status',
+            cellRenderer: params => {
+              const status = params.value;
+              const colors = {
+                'In Stock': 'bg-green-500',
+                'Low Stock': 'bg-yellow-500',
+                'Out of Stock': 'bg-red-500'
+              };
+              return `<span class="${colors[status]} text-white px-2 py-1 rounded text-xs">${status}</span>`;
+            }
+          }
+        ],
+        rowData: [
+          { product: 'Laptop', category: 'Electronics', quantity: 15, price: 899.99, status: 'In Stock' },
+          { product: 'Mouse', category: 'Electronics', quantity: 50, price: 29.99, status: 'In Stock' },
+          { product: 'Keyboard', category: 'Electronics', quantity: 30, price: 79.99, status: 'In Stock' },
+          { product: 'Monitor', category: 'Electronics', quantity: 5, price: 299.99, status: 'Low Stock' },
+          { product: 'Desk', category: 'Furniture', quantity: 10, price: 399.99, status: 'In Stock' },
+          { product: 'Chair', category: 'Furniture', quantity: 0, price: 249.99, status: 'Out of Stock' },
+          { product: 'Lamp', category: 'Furniture', quantity: 25, price: 49.99, status: 'In Stock' }
+        ],
+        defaultColDef: {
+          flex: 1,
+          minWidth: 100,
+          sortable: true,
+          resizable: true,
+          filter: true
+        },
+        autoGroupColumnDef: {
+          minWidth: 200
+        },
+        sideBar: {
+          toolPanels: ['columns', 'filters']
+        },
+        statusBar: {
+          statusPanels: [
+            { statusPanel: 'agTotalAndFilteredRowCountComponent' },
+            { statusPanel: 'agAggregationComponent' }
+          ]
+        }
+      };
+
+      const gridDiv = document.querySelector('#advancedGrid');
+      advancedGridApi = agGrid.createGrid(gridDiv, gridOptions);
+    }
+
+    function initIntegration() {
+      const $ = go.GraphObject.make;
+
+      // Initialize Diagram
+      integrationDiagram = $(go.Diagram, "integrationDiagram", {
+        "undoManager.isEnabled": true,
+        layout: $(go.TreeLayout, {
+          angle: 90,
+          layerSpacing: 50
+        })
+      });
+
+      integrationDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          $(go.Shape, "RoundedRectangle",
+            { fill: "white", stroke: "#3F51B5", strokeWidth: 2 },
+            new go.Binding("fill", "isHighlighted", h => h ? "#FFEB3B" : "white")),
+          $(go.Panel, "Vertical",
+            { margin: 8 },
+            $(go.TextBlock,
+              { font: "bold 12px sans-serif" },
+              new go.Binding("text", "name")),
+            $(go.TextBlock,
+              { font: "10px sans-serif", stroke: "#666" },
+              new go.Binding("text", "title"))
+          )
+        );
+
+      integrationDiagram.linkTemplate =
+        $(go.Link,
+          { routing: go.Link.Orthogonal, corner: 5 },
+          $(go.Shape, { strokeWidth: 1.5, stroke: "#BDBDBD" })
+        );
+
+      const employeeData = [
+        { id: 1, name: 'Alice Johnson', title: 'CEO', department: 'Executive', parent: null },
+        { id: 2, name: 'Bob Smith', title: 'CTO', department: 'Engineering', parent: 1 },
+        { id: 3, name: 'Carol Williams', title: 'CFO', department: 'Finance', parent: 1 },
+        { id: 4, name: 'David Brown', title: 'Developer', department: 'Engineering', parent: 2 },
+        { id: 5, name: 'Eve Davis', title: 'Designer', department: 'Design', parent: 2 }
+      ];
+
+      integrationDiagram.model = new go.TreeModel(
+        employeeData.map(emp => ({
+          key: emp.id,
+          name: emp.name,
+          title: emp.title,
+          parent: emp.parent
+        }))
+      );
+
+      // Initialize Grid
+      const gridOptions = {
+        columnDefs: [
+          { field: 'id', headerName: 'ID', width: 80 },
+          { field: 'name', headerName: 'Name', flex: 1 },
+          { field: 'title', headerName: 'Title', flex: 1 },
+          { field: 'department', headerName: 'Department', flex: 1 }
+        ],
+        rowData: employeeData,
+        defaultColDef: {
+          sortable: true,
+          resizable: true
+        },
+        rowSelection: 'single',
+        onSelectionChanged: (event) => {
+          const selectedRows = event.api.getSelectedRows();
+          if (selectedRows.length > 0) {
+            const selectedId = selectedRows[0].id;
+            highlightNodeInDiagram(selectedId);
+          }
+        }
+      };
+
+      const gridDiv = document.querySelector('#integrationGrid');
+      integrationGridApi = agGrid.createGrid(gridDiv, gridOptions);
+    }
+
+    function highlightNodeInDiagram(nodeId) {
+      integrationDiagram.startTransaction("highlight");
+      integrationDiagram.nodes.each(node => {
+        integrationDiagram.model.setDataProperty(node.data, "isHighlighted", node.data.key === nodeId);
+      });
+      integrationDiagram.commitTransaction("highlight");
+
+      const node = integrationDiagram.findNodeForKey(nodeId);
+      if (node) {
+        integrationDiagram.centerRect(node.actualBounds);
+      }
+    }
+
+    // Smooth scrolling for navigation
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
