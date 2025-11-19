@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfluxDB: Administration, Security & Backup - 60 Minute Course</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Prism.js for Code Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --security: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background: #f5f7fa;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0 70px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23f5f7fa" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+            animation: slideInDown 0.8s ease;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge-custom {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px 30px;
+            border-radius: 50px;
+            margin: 10px 8px;
+            display: inline-block;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .badge-custom:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .timer-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #667eea;
+            padding: 18px 35px;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
+            font-size: 1.3rem;
+            z-index: 1050;
+            border: 3px solid #667eea;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 90px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .nav-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-container .nav-link {
+            color: #495057;
+            padding: 14px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-container .nav-link i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .nav-container .nav-link:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+            border-left-color: #667eea;
+            transform: translateX(8px);
+            color: #667eea;
+        }
+
+        .nav-container .nav-link.active {
+            background: var(--primary);
+            color: white;
+            border-left-color: #764ba2;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .module-card {
+            background: white;
+            border: none;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 60px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+            transition: all 0.4s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 70px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-header {
+            background: var(--primary);
+            color: white;
+            padding: 35px;
+            position: relative;
+        }
+
+        .module-header h2 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 2rem;
+        }
+
+        .security-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .code-block {
+            background: #272822;
+            border-radius: 15px;
+            margin: 25px 0;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .code-header {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-lang {
+            color: #66d9ef;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .copy-btn {
+            background: rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .copy-btn:hover {
+            background: rgba(102, 126, 234, 0.5);
+            transform: scale(1.05);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 6px solid #2196F3;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            box-shadow: 0 5px 20px rgba(33, 150, 243, 0.15);
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left: 6px solid #ff9800;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            box-shadow: 0 5px 20px rgba(255, 152, 0, 0.15);
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 6px solid #4caf50;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.15);
+        }
+
+        .danger-box {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-left: 6px solid #f44336;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            box-shadow: 0 5px 20px rgba(244, 67, 54, 0.15);
+        }
+
+        .security-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            border: 2px solid transparent;
+        }
+
+        .security-card:hover {
+            transform: translateY(-8px);
+            border-color: #667eea;
+            box-shadow: 0 15px 45px rgba(102, 126, 234, 0.2);
+        }
+
+        .security-icon {
+            font-size: 4rem;
+            background: var(--primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin: 30px 0;
+        }
+
+        .comparison-table th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 20px;
+            border: none;
+        }
+
+        .comparison-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .lab-section {
+            background: var(--security);
+            color: white;
+            padding: 50px;
+            border-radius: 25px;
+            margin: 50px 0;
+            box-shadow: 0 20px 60px rgba(240, 147, 251, 0.3);
+        }
+
+        .lab-card {
+            background: white;
+            color: #2c3e50;
+            border-radius: 20px;
+            padding: 35px;
+            margin: 25px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .lab-number {
+            display: inline-block;
+            width: 55px;
+            height: 55px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            line-height: 55px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.6rem;
+            margin-right: 15px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .progress-tracker {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 85px;
+            height: 85px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            z-index: 1050;
+            border: 5px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-custom {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+            color: white;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 12px 20px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #4caf50;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .checklist li:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .permission-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .architecture-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px dashed #667eea;
+            margin: 25px 0;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 50px 0;
+            margin-top: 100px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.2rem;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+                margin-bottom: 30px;
+            }
+
+            .timer-badge {
+                position: relative;
+                margin: 15px auto;
+                display: block;
+                width: fit-content;
+            }
+
+            .progress-tracker {
+                width: 65px;
+                height: 65px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Timer Badge -->
+    <div class="timer-badge">
+        <i class="bi bi-hourglass-split"></i>
+        <span id="courseTimer">60:00</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="text-center position-relative">
+                <h1 class="hero-title">
+                    <i class="bi bi-shield-lock"></i> InfluxDB Security
+                </h1>
+                <h2 class="mb-4">Administration, Security & Backup Mastery</h2>
+                <p class="lead mb-4">Advanced 60-Minute Professional Course</p>
+
+                <div class="mt-4">
+                    <span class="badge-custom">
+                        <i class="bi bi-clock-fill"></i> 60 Minutes
+                    </span>
+                    <span class="badge-custom">
+                        <i class="bi bi-shield-check"></i> Advanced Level
+                    </span>
+                    <span class="badge-custom">
+                        <i class="bi bi-code-square"></i> 4 Labs
+                    </span>
+                    <span class="badge-custom">
+                        <i class="bi bi-lock-fill"></i> Production Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar">
+                    <div class="nav-container">
+                        <h5 class="mb-3 fw-bold text-center">
+                            <i class="bi bi-list-ul"></i> Course Navigation
+                        </h5>
+                        <nav class="nav flex-column">
+                            <a class="nav-link active" href="#overview">
+                                <i class="bi bi-info-circle"></i>Overview
+                            </a>
+                            <a class="nav-link" href="#module1">
+                                <i class="bi bi-people"></i>User Management
+                            </a>
+                            <a class="nav-link" href="#module2">
+                                <i class="bi bi-key"></i>Authentication
+                            </a>
+                            <a class="nav-link" href="#module3">
+                                <i class="bi bi-save"></i>Backup & Restore
+                            </a>
+                            <a class="nav-link" href="#module4">
+                                <i class="bi bi-arrow-left-right"></i>Migration
+                            </a>
+                            <a class="nav-link" href="#labs">
+                                <i class="bi bi-laptop"></i>Labs
+                            </a>
+                            <a class="nav-link" href="#summary">
+                                <i class="bi bi-trophy"></i>Summary
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <!-- Overview Section -->
+                <section id="overview" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-info-circle-fill"></i> Course Overview</h2>
+                            <span class="security-badge">
+                                <i class="bi bi-shield-check"></i> Security First
+                            </span>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4 class="mb-4">What You'll Master</h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="security-card">
+                                        <i class="bi bi-person-badge security-icon"></i>
+                                        <h5>User Management</h5>
+                                        <p class="mb-0 text-muted">Organizations, roles & RBAC</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="security-card">
+                                        <i class="bi bi-shield-lock security-icon"></i>
+                                        <h5>Authentication</h5>
+                                        <p class="mb-0 text-muted">Token-based security</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="security-card">
+                                        <i class="bi bi-server security-icon"></i>
+                                        <h5>Backup Strategies</h5>
+                                        <p class="mb-0 text-muted">Automated & tested backups</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="security-card">
+                                        <i class="bi bi-arrow-repeat security-icon"></i>
+                                        <h5>Data Migration</h5>
+                                        <p class="mb-0 text-muted">Safe environment transfers</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box mt-4">
+                                <h5><i class="bi bi-exclamation-triangle-fill"></i> Prerequisites</h5>
+                                <p class="mb-0"><strong>Advanced Level:</strong> Strong understanding of InfluxDB
+                                    operations, database concepts, and system administration required</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 1: User Management -->
+                <section id="module1" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-people-fill"></i> Module 1: User Management (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Access Control Models</h4>
+
+                            <div class="architecture-box">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-diagram-3"></i> InfluxDB 1.x vs 2.x</h6>
+                                <pre class="mb-0"
+                                    style="background: white; color: #2c3e50; padding: 20px; border-radius: 10px;">InfluxDB 1.x (Username/Password):
+├── Users (database level)
+├── Privileges (READ, WRITE, ALL)
+├── Admin Users (cluster-wide)
+└── Simple authentication
+
+InfluxDB 2.x (Token-based):
+├── Organizations
+├── Users (org members)
+├── Buckets (databases)
+├── Tokens (API authentication)
+└── Fine-grained permissions</pre>
+                            </div>
+
+                            <h4 class="mt-5">Creating Users (InfluxDB 1.x)</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">InfluxQL</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-sql">-- Create admin user
+CREATE USER admin WITH PASSWORD 'strong_password' WITH ALL PRIVILEGES
+
+-- Create regular user
+CREATE USER "developer" WITH PASSWORD 'dev_password'
+
+-- Grant privileges
+GRANT READ ON "mydb" TO "developer"
+GRANT WRITE ON "mydb" TO "developer"
+GRANT ALL ON "mydb" TO "developer"
+
+-- Show privileges
+SHOW GRANTS FOR "developer"
+
+-- Revoke privileges
+REVOKE WRITE ON "mydb" FROM "developer"</code></pre>
+                            </div>
+
+                            <h4 class="mt-5">Privilege Levels</h4>
+                            <div class="comparison-table">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Privilege</th>
+                                            <th>Description</th>
+                                            <th>Actions Allowed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="permission-badge">READ</span></td>
+                                            <td>Read-only access</td>
+                                            <td>SELECT queries</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="permission-badge">WRITE</span></td>
+                                            <td>Write access</td>
+                                            <td>INSERT, DELETE</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="permission-badge">ALL</span></td>
+                                            <td>Full database access</td>
+                                            <td>All operations on database</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="permission-badge">ALL PRIVILEGES</span></td>
+                                            <td>Admin rights</td>
+                                            <td>Cluster-wide operations</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 class="mt-5">Token Management (InfluxDB 2.x)</h4>
+
+                            <div class="info-box">
+                                <h6><i class="bi bi-key-fill"></i> Token Types</h6>
+                                <ul class="mb-0">
+                                    <li><strong>All-Access Token:</strong> Full admin access</li>
+                                    <li><strong>Operator Token:</strong> Manage specific resources</li>
+                                    <li><strong>Read/Write Token:</strong> Bucket-level access</li>
+                                    <li><strong>Custom Token:</strong> Fine-grained permissions</li>
+                                </ul>
+                            </div>
+
+                            <div class="code-block mt-4">
+                                <div class="code-header">
+                                    <span class="code-lang">bash</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-bash"># Create read-only token
+influx auth create \\
+  --org production \\
+  --read-bucket BUCKET_ID \\
+  --description "Read-only monitoring token"
+
+# Create read-write token
+influx auth create \\
+  --org production \\
+  --read-bucket BUCKET_ID \\
+  --write-bucket BUCKET_ID \\
+  --description "Application token"
+
+# List all tokens
+influx auth list
+
+# Delete token
+influx auth delete --id TOKEN_ID</code></pre>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-lightbulb-fill"></i> Token Best Practices</h6>
+                                <ul class="checklist mb-0">
+                                    <li>✅ Use principle of least privilege</li>
+                                    <li>✅ Implement token rotation (90 days)</li>
+                                    <li>✅ Store tokens in secrets management</li>
+                                    <li>✅ Never hardcode tokens in code</li>
+                                    <li>✅ Use environment variables</li>
+                                    <li>✅ Monitor token usage</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 2: Authentication & Authorization -->
+                <section id="module2" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-shield-check"></i> Module 2: Authentication (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Authentication Methods</h4>
+
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="info-box">
+                                        <h6><i class="bi bi-person-lock"></i> InfluxDB 1.x</h6>
+                                        <ul class="mb-0">
+                                            <li>Basic HTTP Authentication</li>
+                                            <li>JWT Authentication</li>
+                                            <li>LDAP (Enterprise)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-box">
+                                        <h6><i class="bi bi-key"></i> InfluxDB 2.x</h6>
+                                        <ul class="mb-0">
+                                            <li>Token-based API access</li>
+                                            <li>OAuth 2.0 (Cloud)</li>
+                                            <li>Session-based UI login</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Using Tokens in Applications</h4>
+
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">Python</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-python">from influxdb_client import InfluxDBClient
+
+# Best practice: Use environment variable
+import os
+token = os.getenv('INFLUX_TOKEN')
+
+client = InfluxDBClient(
+    url="http://localhost:8086",
+    token=token,
+    org="production"
+)
+
+query_api = client.query_api()
+write_api = client.write_api()</code></pre>
+                            </div>
+
+                            <h4 class="mt-5">Security Best Practices</h4>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle"></i> Network Security</h6>
+                                        <ul class="mb-0">
+                                            <li>Enable HTTPS/TLS</li>
+                                            <li>Configure firewall rules</li>
+                                            <li>Bind to private IP</li>
+                                            <li>Disable admin UI in prod</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle"></i> Access Control</h6>
+                                        <ul class="mb-0">
+                                            <li>Enable authentication</li>
+                                            <li>Strong passwords (16+ chars)</li>
+                                            <li>Regular access reviews</li>
+                                            <li>Audit logging enabled</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box mt-4">
+                                <h6><i class="bi bi-exclamation-triangle-fill"></i> Configuration Example</h6>
+                                <div class="code-block mt-3">
+                                    <div class="code-header">
+                                        <span class="code-lang">influxdb.conf</span>
+                                        <button class="copy-btn" onclick="copyCode(this)">
+                                            <i class="bi bi-clipboard"></i> Copy
+                                        </button>
+                                    </div>
+                                    <pre><code class="language-toml">[http]
+  auth-enabled = true
+  https-enabled = true
+  https-certificate = "/etc/ssl/influxdb.pem"
+  https-private-key = "/etc/ssl/influxdb-key.pem"
+  bind-address = "127.0.0.1:8086"
+  pprof-enabled = false
+  max-connection-limit = 100
+
+[admin]
+  enabled = false  # Disable in production</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 3: Backup & Restore -->
+                <section id="module3" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-save-fill"></i> Module 3: Backup & Restore (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Backup Strategies</h4>
+
+                            <div class="architecture-box">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-diagram-2"></i> Backup Types</h6>
+                                <pre class="mb-0"
+                                    style="background: white; color: #2c3e50; padding: 20px; border-radius: 10px;">Backup Strategies:
+├── Full Backup
+│   └── Complete database snapshot
+├── Incremental Backup
+│   └── Only changed data
+├── Online Backup
+│   └── No downtime required
+└── Cold Backup
+    └── Requires shutdown</pre>
+                            </div>
+
+                            <h4 class="mt-5">Backup Commands</h4>
+
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">InfluxDB 1.x</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-bash"># Full backup
+influxd backup -portable /backup/influxdb/$(date +%Y%m%d)
+
+# Backup specific database
+influxd backup -portable -database mydb /backup/mydb/$(date +%Y%m%d)
+
+# Incremental backup since date
+influxd backup -portable \\
+  -database mydb \\
+  -start 2024-01-01T00:00:00Z \\
+  /backup/mydb_incremental/$(date +%Y%m%d)</code></pre>
+                            </div>
+
+                            <div class="code-block mt-3">
+                                <div class="code-header">
+                                    <span class="code-lang">InfluxDB 2.x</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-bash"># Full backup
+influx backup /backup/influxdb2/$(date +%Y%m%d) \\
+  --host http://localhost:8086 \\
+  --token YOUR_TOKEN
+
+# Backup specific bucket
+influx backup /backup/mybucket/$(date +%Y%m%d) \\
+  --host http://localhost:8086 \\
+  --token YOUR_TOKEN \\
+  --bucket mybucket</code></pre>
+                            </div>
+
+                            <h4 class="mt-5">Automated Backup Script</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">bash script</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-bash">#!/bin/bash
+# influxdb-backup.sh
+
+BACKUP_DIR="/backup/influxdb"
+RETENTION_DAYS=7
+DATE=$(date +%Y%m%d_%H%M%S)
+
+# Create backup
+influxd backup -portable "$BACKUP_DIR/$DATE"
+
+if [ $? -eq 0 ]; then
+    echo "Backup completed: $BACKUP_DIR/$DATE"
+    
+    # Compress backup
+    tar -czf "$BACKUP_DIR/$DATE.tar.gz" -C "$BACKUP_DIR" "$DATE"
+    rm -rf "$BACKUP_DIR/$DATE"
+    
+    # Delete old backups
+    find "$BACKUP_DIR" -name "*.tar.gz" -mtime +$RETENTION_DAYS -delete
+    
+    # Upload to S3 (optional)
+    aws s3 cp "$BACKUP_DIR/$DATE.tar.gz" \\
+      s3://my-influxdb-backups/
+else
+    echo "Backup failed!" >&2
+    exit 1
+fi</code></pre>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h6><i class="bi bi-calendar-check"></i> Cron Schedule</h6>
+                                <pre class="mb-0"
+                                    style="background: white; color: #2c3e50; padding: 15px; border-radius: 8px;"># Daily backup at 2 AM
+0 2 * * * /usr/local/bin/influxdb-backup.sh >> /var/log/influxdb-backup.log 2>&1
+
+# Hourly incremental backup
+0 * * * * /usr/local/bin/influxdb-incremental-backup.sh</pre>
+                            </div>
+
+                            <h4 class="mt-5">Restore Process</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">Restore Commands</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-bash"># InfluxDB 1.x - Full Restore
+sudo systemctl stop influxdb
+
+influxd restore -portable \\
+  -metadir /var/lib/influxdb/meta \\
+  -datadir /var/lib/influxdb/data \\
+  /backup/influxdb/20240115
+
+sudo systemctl start influxdb
+
+# InfluxDB 2.x - Restore
+influx restore /backup/influxdb2/20240115 \\
+  --host http://localhost:8086 \\
+  --token YOUR_TOKEN
+
+# Restore to new organization
+influx restore /backup/20240115 \\
+  --host http://localhost:8086 \\
+  --token YOUR_TOKEN \\
+  --new-org restored_org</code></pre>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-check-circle-fill"></i> Backup Best Practices</h6>
+                                <ul class="checklist mb-0">
+                                    <li>✅ Automated daily backups</li>
+                                    <li>✅ Test restores regularly (monthly)</li>
+                                    <li>✅ Off-site backup storage</li>
+                                    <li>✅ Encryption at rest</li>
+                                    <li>✅ Document procedures</li>
+                                    <li>✅ Monitor backup success</li>
+                                    <li>✅ Multiple retention periods</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 4: Migration & Templates -->
+                <section id="module4" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-arrow-left-right"></i> Module 4: Migration & Templates (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Migration Scenarios</h4>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-box text-center">
+                                        <i class="bi bi-arrow-up-circle" style="font-size: 3rem; color: #2196F3;"></i>
+                                        <h6 class="mt-3">Version Upgrade</h6>
+                                        <p class="mb-0 small">1.x → 2.x migration</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-box text-center">
+                                        <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #2196F3;"></i>
+                                        <h6 class="mt-3">Cloud Migration</h6>
+                                        <p class="mb-0 small">On-prem → Cloud</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">InfluxDB 1.x to 2.x Migration</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-lang">Migration Process</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-bash"># Step 1: Generate migration config
+influx migrate export \\
+  --source-host http://localhost:8086 \\
+  --source-username admin \\
+  --source-password admin_pass \\
+  --config-file migration-config.yml
+
+# Step 2: Execute migration
+influx migrate run \\
+  --source-host http://localhost:8086 \\
+  --source-username admin \\
+  --source-password admin_pass \\
+  --target-host http://localhost:8086 \\
+  --target-token YOUR_V2_TOKEN \\
+  --target-org production \\
+  --config-file migration-config.yml
+
+# Step 3: Monitor progress
+influx migrate status \\
+  --config-file migration-config.yml</code></pre>
+                            </div>
+
+                            <h4 class="mt-5">InfluxDB Templates</h4>
+
+                            <div class="info-box">
+                                <h6><i class="bi bi-box-seam"></i> What are Templates?</h6>
+                                <p>Templates package together:</p>
+                                <ul class="mb-0">
+                                    <li>Buckets</li>
+                                    <li>Tasks</li>
+                                    <li>Dashboards</li>
+                                    <li>Checks & Notifications</li>
+                                    <li>Variables & Labels</li>
+                                </ul>
+                            </div>
+
+                            <div class="code-block mt-4">
+                                <div class="code-header">
+                                    <span class="code-lang">Template Commands</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-bash"># Export configuration as template
+influx export all \\
+  --org production \\
+  --file my-template.yml
+
+# Export specific bucket and related resources
+influx export \\
+  --org production \\
+  --bucket mybucket \\
+  --bucket-resources \\
+  --file bucket-template.yml
+
+# Apply template to organization
+influx apply \\
+  --org production \\
+  --file my-template.yml
+
+# Apply with force (overwrite existing)
+influx apply \\
+  --org production \\
+  --file my-template.yml \\
+  --force
+
+# Validate template without applying
+influx apply \\
+  --org production \\
+  --file my-template.yml \\
+  --validate</code></pre>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-lightning-fill"></i> Template Benefits</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Consistency:</strong> Same config across environments</li>
+                                    <li><strong>Version Control:</strong> Track configuration changes</li>
+                                    <li><strong>Rapid Deployment:</strong> One command setup</li>
+                                    <li><strong>Documentation:</strong> Self-documenting infrastructure</li>
+                                    <li><strong>Sharing:</strong> Reusable configurations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Labs Section -->
+                <section id="labs" class="mb-5">
+                    <div class="lab-section">
+                        <h2 class="text-white mb-4">
+                            <i class="bi bi-laptop"></i> Hands-On Security Labs
+                        </h2>
+                        <p class="lead text-white mb-5">Master security through practical exercises</p>
+
+                        <div class="lab-card">
+                            <span class="lab-number">1</span>
+                            <h4 class="d-inline">User Management & RBAC (15 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Set up comprehensive user and access control</p>
+                            <div class="mt-3">
+                                <strong>Tasks:</strong>
+                                <ul>
+                                    <li>Create organization and users</li>
+                                    <li>Set up different permission levels</li>
+                                    <li>Create tokens (admin, read/write, read-only)</li>
+                                    <li>Test access levels</li>
+                                    <li>Document all permissions</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(1)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <span class="lab-number">2</span>
+                            <h4 class="d-inline">Backup & Restore (10 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Implement automated backup strategy</p>
+                            <div class="mt-3">
+                                <strong>Tasks:</strong>
+                                <ul>
+                                    <li>Create test data</li>
+                                    <li>Perform full backup</li>
+                                    <li>Delete original data</li>
+                                    <li>Restore from backup</li>
+                                    <li>Verify data integrity</li>
+                                    <li>Create backup automation script</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(2)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <span class="lab-number">3</span>
+                            <h4 class="d-inline">Data Migration (15 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Migrate data between environments</p>
+                            <div class="mt-3">
+                                <strong>Tasks:</strong>
+                                <ul>
+                                    <li>Export data from source environment</li>
+                                    <li>Transform data format if needed</li>
+                                    <li>Import to destination environment</li>
+                                    <li>Verify migration completeness</li>
+                                    <li>Document migration process</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(3)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <span class="lab-number">4</span>
+                            <h4 class="d-inline">Template Creation (20 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Create and deploy infrastructure template</p>
+                            <div class="mt-3">
+                                <strong>Tasks:</strong>
+                                <ul>
+                                    <li>Set up initial configuration (buckets, tasks, dashboards)</li>
+                                    <li>Export as template file</li>
+                                    <li>Create new organization</li>
+                                    <li>Apply template to new org</li>
+                                    <li>Verify deployment</li>
+                                    <li>Version control template with Git</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(4)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Summary -->
+                <section id="summary" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-trophy-fill"></i> Security Checklist & Summary</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Production Security Checklist</h4>
+
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-shield-check"></i> Network Security</h6>
+                                        <ul class="checklist mb-0">
+                                            <li>☐ Enable HTTPS/TLS</li>
+                                            <li>☐ Configure firewall rules</li>
+                                            <li>☐ Bind to private IP</li>
+                                            <li>☐ Disable admin UI</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-key-fill"></i> Authentication</h6>
+                                        <ul class="checklist mb-0">
+                                            <li>☐ Enable authentication</li>
+                                            <li>☐ Strong passwords</li>
+                                            <li>☐ Token rotation policy</li>
+                                            <li>☐ Audit logging</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-people-fill"></i> Access Control</h6>
+                                        <ul class="checklist mb-0">
+                                            <li>☐ Configure RBAC</li>
+                                            <li>☐ Least privilege principle</li>
+                                            <li>☐ Regular access reviews</li>
+                                            <li>☐ Disable unused accounts</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-save-fill"></i> Backup & Recovery</h6>
+                                        <ul class="checklist mb-0">
+                                            <li>☐ Automated daily backups</li>
+                                            <li>☐ Test restores monthly</li>
+                                            <li>☐ Off-site storage</li>
+                                            <li>☐ Encrypted backups</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Key Takeaways</h4>
+                            <div class="info-box">
+                                <ul class="mb-0">
+                                    <li><strong>User Management:</strong> Implement proper RBAC with least privilege
+                                    </li>
+                                    <li><strong>Authentication:</strong> Token-based with 90-day rotation</li>
+                                    <li><strong>Security:</strong> HTTPS, firewall, audit logging mandatory</li>
+                                    <li><strong>Backup:</strong> Automated, tested, off-site, encrypted</li>
+                                    <li><strong>Migration:</strong> Plan carefully, test thoroughly</li>
+                                    <li><strong>Templates:</strong> Infrastructure as code for consistency</li>
+                                </ul>
+                            </div>
+
+                            <div class="text-center mt-5">
+                                <button class="btn btn-custom btn-lg" onclick="completeCourse()">
+                                    <i class="bi bi-award-fill"></i> Complete Course & Get Certificate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <h4 class="mb-3">InfluxDB: Administration, Security & Backup</h4>
+            <p class="lead">Advanced 60-Minute Professional Course</p>
+            <p class="text-muted mt-4">Secure your time-series infrastructure with confidence</p>
+        </div>
+    </footer>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <span id="progressText">0%</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Copy code
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const original = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                button.style.background = 'rgba(76, 175, 80, 0.5)';
+
+                setTimeout(() => {
+                    button.innerHTML = original;
+                    button.style.background = 'rgba(102, 126, 234, 0.3)';
+                }, 2000);
+            });
+        }
+
+        // Timer
+        let minutes = 60, seconds = 0;
+        setInterval(() => {
+            if (seconds === 0) {
+                if (minutes === 0) return;
+                minutes--;
+                seconds = 59;
+            } else {
+                seconds--;
+            }
+            document.getElementById('courseTimer').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+
+        // Progress tracking
+        window.addEventListener('scroll', () => {
+            let current = '';
+            document.querySelectorAll('section[id]').forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.nav-container .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            document.getElementById('progressText').textContent = Math.round(scrolled) + '%';
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Lab completion
+        let completedLabs = 0;
+        function markLabComplete(labNumber) {
+            event.target.classList.remove('btn-success');
+            event.target.classList.add('btn-secondary');
+            event.target.innerHTML = '<i class="bi bi-check-circle-fill"></i> Completed';
+            event.target.disabled = true;
+            completedLabs++;
+
+            if (completedLabs === 4) {
+                setTimeout(() => {
+                    alert('🔒 Excellent! All security labs completed!');
+                }, 500);
+            }
+        }
+
+        // Course completion
+        function completeCourse() {
+            const name = prompt('Enter your name for the certificate:');
+            if (name) {
+                alert(`🎉 Congratulations ${name}!
+
+You've successfully completed:
+InfluxDB Administration, Security & Backup
+
+Skills Mastered:
+✓ User Management & RBAC
+✓ Authentication & Authorization
+✓ Security Hardening
+✓ Backup & Restore Strategies
+✓ Data Migration
+✓ Infrastructure Templates
+
+You're now ready to secure InfluxDB in production!`);
+            }
+        }
+    </script>
+</body>
+
+</html>

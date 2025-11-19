@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InfluxDB Module 4: Querying and Aggregating Data - Complete Training Course</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #277884;
+      --secondary-color: #5EA8A7;
+      --accent-color: #FE4447;
+      --dark-bg: #1C2833;
+      --light-bg: #F4F6F6;
+      --code-bg: #2C3E50;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.7;
+      color: #2C3E50;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      padding: 5rem 0;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lead {
+      font-size: 1.3rem;
+      opacity: 0.95;
+    }
+
+    .badge-custom {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin: 0.25rem;
+    }
+
+    .section-title {
+      color: var(--primary-color);
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--accent-color);
+    }
+
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s, box-shadow 0.3s;
+      margin-bottom: 1.5rem;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      font-weight: 600;
+      border-radius: 10px 10px 0 0 !important;
+    }
+
+    .code-block {
+      background: var(--code-bg);
+      color: #ECF0F1;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      border-left: 4px solid var(--secondary-color);
+    }
+
+    .code-block .keyword {
+      color: #5EA8A7;
+      font-weight: 500;
+    }
+
+    .code-block .string {
+      color: #FE4447;
+    }
+
+    .code-block .comment {
+      color: #95A5A6;
+      font-style: italic;
+    }
+
+    .alert-custom {
+      border-left: 4px solid;
+      border-radius: 5px;
+      padding: 1rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .alert-tip {
+      background: #E8F6F3;
+      border-left-color: var(--primary-color);
+    }
+
+    .alert-warning {
+      background: #FCE8E8;
+      border-left-color: var(--accent-color);
+    }
+
+    .alert-info {
+      background: #FFF3CD;
+      border-left-color: #FFC107;
+    }
+
+    .comparison-box {
+      background: var(--light-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      height: 100%;
+    }
+
+    .comparison-box h4 {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .table-custom {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .table-custom thead {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .table-custom tbody tr:hover {
+      background: var(--light-bg);
+    }
+
+    .exercise-box {
+      background: linear-gradient(135deg, #E8F6F3 0%, #D1F2EB 100%);
+      border: 2px dashed var(--primary-color);
+      padding: 2rem;
+      border-radius: 10px;
+      margin: 2rem 0;
+    }
+
+    .exercise-box h4 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+      background: var(--secondary-color);
+      border-color: var(--secondary-color);
+    }
+
+    .progress-custom {
+      height: 8px;
+      border-radius: 10px;
+      background: var(--light-bg);
+    }
+
+    .progress-custom .progress-bar {
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .nav-pills .nav-link.active {
+      background: var(--primary-color);
+    }
+
+    .icon-box {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .icon-box i {
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    .footer {
+      background: var(--dark-bg);
+      color: white;
+      padding: 3rem 0 1rem;
+      margin-top: 5rem;
+    }
+
+    .toc-sidebar {
+      position: sticky;
+      top: 20px;
+    }
+
+    .toc-sidebar .list-group-item {
+      border: none;
+      padding: 0.5rem 1rem;
+    }
+
+    .toc-sidebar .list-group-item.active {
+      background: var(--primary-color);
+      border-left: 3px solid var(--accent-color);
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .toc-sidebar {
+        position: relative;
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#">
+        <i class="bi bi-database"></i> InfluxDB Training
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#overview">Overview</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#query-languages">Query Languages</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#exercises">Exercises</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#resources">Resources</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Module 4: Querying and Aggregating Data</h1>
+      <p class="lead">Master InfluxDB Query Languages in 75 Minutes</p>
+      <div class="mt-4">
+        <span class="badge badge-custom bg-light text-dark"><i class="bi bi-clock"></i> 75 Minutes</span>
+        <span class="badge badge-custom bg-light text-dark"><i class="bi bi-graph-up"></i> Intermediate</span>
+        <span class="badge badge-custom bg-light text-dark"><i class="bi bi-code-slash"></i> Hands-On</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Progress Bar -->
+  <div class="container mt-4">
+    <div class="progress progress-custom">
+      <div class="progress-bar" role="progressbar" style="width: 0%" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container my-5">
+    <div class="row">
+      <!-- Sidebar TOC -->
+      <div class="col-lg-3">
+        <div class="toc-sidebar">
+          <div class="list-group">
+            <a href="#overview" class="list-group-item list-group-item-action active">
+              <i class="bi bi-house-door"></i> Overview
+            </a>
+            <a href="#query-languages" class="list-group-item list-group-item-action">
+              <i class="bi bi-code-square"></i> Query Languages
+            </a>
+            <a href="#filtering" class="list-group-item list-group-item-action">
+              <i class="bi bi-funnel"></i> Filtering
+            </a>
+            <a href="#aggregation" class="list-group-item list-group-item-action">
+              <i class="bi bi-bar-chart"></i> Aggregation
+            </a>
+            <a href="#grouping" class="list-group-item list-group-item-action">
+              <i class="bi bi-collection"></i> Grouping
+            </a>
+            <a href="#advanced" class="list-group-item list-group-item-action">
+              <i class="bi bi-gear"></i> Advanced Ops
+            </a>
+            <a href="#performance" class="list-group-item list-group-item-action">
+              <i class="bi bi-speedometer2"></i> Performance
+            </a>
+            <a href="#exercises" class="list-group-item list-group-item-action">
+              <i class="bi bi-pencil-square"></i> Exercises
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-lg-9">
+        <!-- Overview Section -->
+        <section id="overview" class="mb-5">
+          <h2 class="section-title">Course Overview</h2>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="icon-box">
+                    <i class="bi bi-code-slash"></i>
+                  </div>
+                  <h5 class="card-title">Query Languages</h5>
+                  <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Master InfluxQL syntax</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Understand Flux pipelines</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Know when to use each</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="icon-box">
+                    <i class="bi bi-funnel"></i>
+                  </div>
+                  <h5 class="card-title">Data Operations</h5>
+                  <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Filter data effectively</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Group by tags and time</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Apply aggregations</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="icon-box">
+                    <i class="bi bi-gear-wide-connected"></i>
+                  </div>
+                  <h5 class="card-title">Advanced Techniques</h5>
+                  <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Windowing operations</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Mathematical functions</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Joins and unions</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="icon-box">
+                    <i class="bi bi-speedometer2"></i>
+                  </div>
+                  <h5 class="card-title">Optimization</h5>
+                  <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Query performance</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Best practices</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Troubleshooting tips</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time Allocation -->
+          <div class="card mt-4">
+            <div class="card-header">
+              <i class="bi bi-clock-history"></i> Time Allocation
+            </div>
+            <div class="card-body">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Section</th>
+                    <th>Duration</th>
+                    <th>Topics</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Introduction</strong></td>
+                    <td><span class="badge bg-primary">5 min</span></td>
+                    <td>Course overview, objectives</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Query Languages</strong></td>
+                    <td><span class="badge bg-primary">15 min</span></td>
+                    <td>InfluxQL vs Flux comparison</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Filtering</strong></td>
+                    <td><span class="badge bg-primary">15 min</span></td>
+                    <td>Tag, field, time filtering</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Aggregation</strong></td>
+                    <td><span class="badge bg-primary">15 min</span></td>
+                    <td>Statistical functions</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Grouping</strong></td>
+                    <td><span class="badge bg-primary">10 min</span></td>
+                    <td>GROUP BY operations</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Advanced Operations</strong></td>
+                    <td><span class="badge bg-primary">10 min</span></td>
+                    <td>Windowing, joins, math</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Performance</strong></td>
+                    <td><span class="badge bg-primary">10 min</span></td>
+                    <td>Optimization techniques</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Wrap-up</strong></td>
+                    <td><span class="badge bg-primary">5 min</span></td>
+                    <td>Summary, Q&A</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Query Languages Section -->
+        <section id="query-languages" class="mb-5">
+          <h2 class="section-title">Query Languages</h2>
+
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="comparison-box">
+                <h4><i class="bi bi-database-fill-check"></i> InfluxQL</h4>
+                <p class="fw-bold">SQL-Like Query Language</p>
+                <ul>
+                  <li>Familiar SQL syntax</li>
+                  <li>Easy learning curve</li>
+                  <li>Optimized for simple queries</li>
+                  <li>Limited transformations</li>
+                </ul>
+                <div class="alert alert-tip">
+                  <strong><i class="bi bi-lightbulb"></i> Best for:</strong> Quick queries, dashboards, simple
+                  aggregations
+                </div>
+
+                <h6 class="mt-3">Example:</h6>
+                <div class="code-block">
+                  <span class="keyword">SELECT</span> mean(temperature)
+                  <span class="keyword">FROM</span> weather
+                  <span class="keyword">WHERE</span> location = <span class="string">'NYC'</span>
+                  <span class="keyword">AND</span> time >= now() - 1h
+                  <span class="keyword">GROUP BY</span> time(10m)
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="comparison-box">
+                <h4><i class="bi bi-diagram-3"></i> Flux</h4>
+                <p class="fw-bold">Functional Data Scripting</p>
+                <ul>
+                  <li>Pipeline-based processing</li>
+                  <li>Advanced transformations</li>
+                  <li>Join multiple sources</li>
+                  <li>Custom functions</li>
+                </ul>
+                <div class="alert alert-tip">
+                  <strong><i class="bi bi-lightbulb"></i> Best for:</strong> Complex analysis, ETL, advanced operations
+                </div>
+
+                <h6 class="mt-3">Example:</h6>
+                <div class="code-block">
+                  <span class="keyword">from</span>(bucket: <span class="string">"weather"</span>)
+                  |> <span class="keyword">range</span>(start: -1h)
+                  |> <span class="keyword">filter</span>(fn: (r) =>
+                  r.location == <span class="string">"NYC"</span>)
+                  |> <span class="keyword">aggregateWindow</span>(
+                  every: 10m, fn: mean)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-4">
+            <div class="card-header">
+              <i class="bi bi-diagram-2"></i> Feature Comparison
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-custom">
+                  <thead>
+                    <tr>
+                      <th>Feature</th>
+                      <th>InfluxQL</th>
+                      <th>Flux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Syntax</strong></td>
+                      <td>SQL-like</td>
+                      <td>Functional</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Learning Curve</strong></td>
+                      <td><span class="badge bg-success">Easy</span></td>
+                      <td><span class="badge bg-warning">Moderate</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Joins</strong></td>
+                      <td><span class="badge bg-secondary">Limited</span></td>
+                      <td><span class="badge bg-success">Full Support</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Transformations</strong></td>
+                      <td>Basic</td>
+                      <td>Advanced</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Use Cases</strong></td>
+                      <td>Dashboards, monitoring</td>
+                      <td>Analytics, ETL</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Filtering Section -->
+        <section id="filtering" class="mb-5">
+          <h2 class="section-title">Filtering and Selection</h2>
+
+          <div class="alert alert-tip">
+            <strong><i class="bi bi-lightbulb"></i> Key Principle:</strong> Always filter on indexed tags first for
+            better performance!
+          </div>
+
+          <div class="row">
+            <div class="col-lg-4">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="icon-box mx-auto">
+                    <i class="bi bi-tag"></i>
+                  </div>
+                  <h5>Tag Filters</h5>
+                  <p class="small">Indexed, fast filtering</p>
+                  <div class="code-block text-start">
+                    WHERE location = <span class="string">'NYC'</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-4">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="icon-box mx-auto">
+                    <i class="bi bi-list-columns"></i>
+                  </div>
+                  <h5>Field Filters</h5>
+                  <p class="small">Value-based filtering</p>
+                  <div class="code-block text-start">
+                    WHERE temp > 25
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-4">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="icon-box mx-auto">
+                    <i class="bi bi-clock-history"></i>
+                  </div>
+                  <h5>Time Filters</h5>
+                  <p class="small">Time range selection</p>
+                  <div class="code-block text-start">
+                    WHERE time >= now() - 1h
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-4">
+            <div class="card-header">
+              <i class="bi bi-code-square"></i> Complete Filtering Example
+            </div>
+            <div class="card-body">
+              <ul class="nav nav-pills mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" data-bs-toggle="pill"
+                    data-bs-target="#influxql-filter">InfluxQL</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#flux-filter">Flux</button>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane fade show active" id="influxql-filter">
+                  <div class="code-block">
+                    <span class="keyword">SELECT</span> *
+                    <span class="keyword">FROM</span> sensors
+                    <span class="keyword">WHERE</span> device = <span class="string">'sensor01'</span> <span
+                      class="comment">-- Tag filter (fast)</span>
+                    <span class="keyword">AND</span> value > 100 <span class="comment">-- Field filter</span>
+                    <span class="keyword">AND</span> time > now() - 24h <span class="comment">-- Time filter</span>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="flux-filter">
+                  <div class="code-block">
+                    <span class="keyword">from</span>(bucket: <span class="string">"sensors"</span>)
+                    |> <span class="keyword">range</span>(start: -24h)
+                    |> <span class="keyword">filter</span>(fn: (r) =>
+                    r.device == <span class="string">"sensor01"</span> and
+                    r._value > 100)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Aggregation Section -->
+        <section id="aggregation" class="mb-5">
+          <h2 class="section-title">Aggregation Functions</h2>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <i class="bi bi-graph-up"></i> Statistical Functions
+                </div>
+                <div class="card-body">
+                  <ul class="list-unstyled">
+                    <li class="mb-2">
+                      <code class="text-primary">count()</code> - Count data points
+                    </li>
+                    <li class="mb-2">
+                      <code class="text-primary">mean()</code> - Average value
+                    </li>
+                    <li class="mb-2">
+                      <code class="text-primary">median()</code> - Middle value
+                    </li>
+                    <li class="mb-2">
+                      <code class="text-primary">stddev()</code> - Standard deviation
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <i class="bi bi-bar-chart-line"></i> Range Functions
+                </div>
+                <div class="card-body">
+                  <ul class="list-unstyled">
+                    <li class="mb-2">
+                      <code class="text-primary">min()</code> - Minimum value
+                    </li>
+                    <li class="mb-2">
+                      <code class="text-primary">max()</code> - Maximum value
+                    </li>
+                    <li class="mb-2">
+                      <code class="text-primary">sum()</code> - Total sum
+                    </li>
+                    <li class="mb-2">
+                      <code class="text-primary">percentile()</code> - Nth percentile
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-4">
+            <div class="card-header">
+              <i class="bi bi-calculator"></i> Aggregation Examples
+            </div>
+            <div class="card-body">
+              <div class="code-block">
+                <span class="comment">-- Calculate average, min, max</span>
+                <span class="keyword">SELECT</span> mean(temperature), min(temperature), max(temperature)
+                <span class="keyword">FROM</span> weather
+                <span class="keyword">WHERE</span> time >= now() - 1d
+
+                <span class="comment">-- 95th percentile for SLA monitoring</span>
+                <span class="keyword">SELECT</span> percentile(response_time, 95)
+                <span class="keyword">FROM</span> api_metrics
+                <span class="keyword">WHERE</span> time >= now() - 1h
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Grouping Section -->
+        <section id="grouping" class="mb-5">
+          <h2 class="section-title">Grouping Operations</h2>
+
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-collection"></i> GROUP BY Options
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <h6><i class="bi bi-tag-fill"></i> Group by Tags</h6>
+                  <div class="code-block">
+                    <span class="keyword">GROUP BY</span> location
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <h6><i class="bi bi-clock"></i> Group by Time</h6>
+                  <div class="code-block">
+                    <span class="keyword">GROUP BY</span> time(1h)
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <h6><i class="bi bi-diagram-3"></i> Combined</h6>
+                  <div class="code-block">
+                    <span class="keyword">GROUP BY</span> location, time(1h)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info mt-3">
+            <strong><i class="bi bi-info-circle"></i> Fill Options:</strong>
+            Handle missing data with <code>FILL(null)</code>, <code>FILL(previous)</code>, <code>FILL(linear)</code>, or
+            <code>FILL(0)</code>
+          </div>
+        </section>
+
+        <!-- Advanced Operations Section -->
+        <section id="advanced" class="mb-5">
+          <h2 class="section-title">Advanced Operations</h2>
+
+          <div class="row">
+            <div class="col-md-4">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <div class="icon-box mx-auto">
+                    <i class="bi bi-window"></i>
+                  </div>
+                  <h5>Windowing</h5>
+                  <p class="small">Fixed, sliding, session windows</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <div class="icon-box mx-auto">
+                    <i class="bi bi-calculator-fill"></i>
+                  </div>
+                  <h5>Math Operations</h5>
+                  <p class="small">Field calculations, derivatives</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <div class="icon-box mx-auto">
+                    <i class="bi bi-link-45deg"></i>
+                  </div>
+                  <h5>Joins & Unions</h5>
+                  <p class="small">Combine multiple sources</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-4">
+            <div class="card-header">
+              <i class="bi bi-code-slash"></i> Join Example
+            </div>
+            <div class="card-body">
+              <div class="code-block">
+                <span class="comment">// Join CPU and memory data</span>
+                cpu = <span class="keyword">from</span>(bucket: <span class="string">"metrics"</span>)
+                |> <span class="keyword">range</span>(start: -1h)
+                |> <span class="keyword">filter</span>(fn: (r) => r._measurement == <span class="string">"cpu"</span>)
+
+                memory = <span class="keyword">from</span>(bucket: <span class="string">"metrics"</span>)
+                |> <span class="keyword">range</span>(start: -1h)
+                |> <span class="keyword">filter</span>(fn: (r) => r._measurement == <span
+                  class="string">"memory"</span>)
+
+                <span class="keyword">join</span>(
+                tables: {cpu: cpu, mem: memory},
+                on: [<span class="string">"_time"</span>, <span class="string">"host"</span>]
+                )
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Performance Section -->
+        <section id="performance" class="mb-5">
+          <h2 class="section-title">Performance Optimization</h2>
+
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                  <i class="bi bi-check-circle"></i> DO
+                </div>
+                <div class="card-body">
+                  <ul class="list-unstyled">
+                    <li><i class="bi bi-check2 text-success"></i> Filter on indexed tags first</li>
+                    <li><i class="bi bi-check2 text-success"></i> Use specific time ranges</li>
+                    <li><i class="bi bi-check2 text-success"></i> Select only needed fields</li>
+                    <li><i class="bi bi-check2 text-success"></i> Use appropriate intervals</li>
+                    <li><i class="bi bi-check2 text-success"></i> Monitor query metrics</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                  <i class="bi bi-x-circle"></i> AVOID
+                </div>
+                <div class="card-body">
+                  <ul class="list-unstyled">
+                    <li><i class="bi bi-x text-danger"></i> Large time ranges without filters</li>
+                    <li><i class="bi bi-x text-danger"></i> High cardinality tag queries</li>
+                    <li><i class="bi bi-x text-danger"></i> Complex regex in WHERE</li>
+                    <li><i class="bi bi-x text-danger"></i> Too many GROUP BY tags</li>
+                    <li><i class="bi bi-x text-danger"></i> Ignoring performance</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+              <i class="bi bi-lightning"></i> Optimization Impact
+            </div>
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-8">
+                  <div class="mb-2">
+                    <strong>Unoptimized:</strong> <span class="badge bg-danger">2400ms</span>
+                    <div class="progress" style="height: 25px;">
+                      <div class="progress-bar bg-danger" style="width: 100%"></div>
+                    </div>
+                  </div>
+                  <div class="mb-2">
+                    <strong>+ Tag Filter:</strong> <span class="badge bg-warning">800ms</span>
+                    <div class="progress" style="height: 25px;">
+                      <div class="progress-bar bg-warning" style="width: 33%"></div>
+                    </div>
+                  </div>
+                  <div class="mb-2">
+                    <strong>+ Time Range:</strong> <span class="badge bg-info">450ms</span>
+                    <div class="progress" style="height: 25px;">
+                      <div class="progress-bar bg-info" style="width: 19%"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <strong>+ Field Selection:</strong> <span class="badge bg-success">120ms</span>
+                    <div class="progress" style="height: 25px;">
+                      <div class="progress-bar bg-success" style="width: 5%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4 text-center">
+                  <h1 class="display-4 text-success fw-bold">95%</h1>
+                  <p class="lead">Faster!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Exercises Section -->
+        <section id="exercises" class="mb-5">
+          <h2 class="section-title">Hands-On Exercises</h2>
+
+          <div class="exercise-box">
+            <h4><i class="bi bi-pencil-square"></i> Exercise 1: Basic Queries</h4>
+            <p><strong>Objective:</strong> Practice writing basic queries in both InfluxQL and Flux</p>
+            <p><strong>Tasks:</strong></p>
+            <ol>
+              <li>Write an InfluxQL query to get all data from the last hour</li>
+              <li>Write the equivalent Flux query</li>
+              <li>Filter to show only data where temperature > 25</li>
+              <li>Add a filter for location = 'warehouse-A'</li>
+            </ol>
+            <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#solution1">
+              <i class="bi bi-eye"></i> Show Solution
+            </button>
+            <div class="collapse mt-3" id="solution1">
+              <div class="code-block">
+                <span class="comment">-- InfluxQL Solution</span>
+                <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> sensors
+                <span class="keyword">WHERE</span> time >= now() - 1h
+                <span class="keyword">AND</span> temperature > 25
+                <span class="keyword">AND</span> location = <span class="string">'warehouse-A'</span>
+
+                <span class="comment">// Flux Solution</span>
+                <span class="keyword">from</span>(bucket: <span class="string">"sensors"</span>)
+                |> <span class="keyword">range</span>(start: -1h)
+                |> <span class="keyword">filter</span>(fn: (r) =>
+                r._measurement == <span class="string">"sensors"</span> and
+                r.temperature > 25 and
+                r.location == <span class="string">"warehouse-A"</span>
+                )
+              </div>
+            </div>
+          </div>
+
+          <div class="exercise-box">
+            <h4><i class="bi bi-graph-up-arrow"></i> Exercise 2: Aggregations</h4>
+            <p><strong>Objective:</strong> Calculate statistics on API response times</p>
+            <p><strong>Tasks:</strong></p>
+            <ol>
+              <li>Calculate the average response time</li>
+              <li>Find the 95th percentile (P95)</li>
+              <li>Count the number of requests</li>
+              <li>Group results by hour</li>
+            </ol>
+            <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#solution2">
+              <i class="bi bi-eye"></i> Show Solution
+            </button>
+            <div class="collapse mt-3" id="solution2">
+              <div class="code-block">
+                <span class="comment">-- InfluxQL Solution</span>
+                <span class="keyword">SELECT</span>
+                mean(response_time) <span class="keyword">AS</span> avg_response,
+                percentile(response_time, 95) <span class="keyword">AS</span> p95,
+                count(response_time) <span class="keyword">AS</span> request_count
+                <span class="keyword">FROM</span> api_metrics
+                <span class="keyword">WHERE</span> time >= now() - 24h
+                <span class="keyword">GROUP BY</span> time(1h)
+              </div>
+            </div>
+          </div>
+
+          <div class="exercise-box">
+            <h4><i class="bi bi-speedometer2"></i> Exercise 3: Query Optimization</h4>
+            <p><strong>Objective:</strong> Optimize a slow query</p>
+            <p><strong>Original Query (2400ms):</strong></p>
+            <div class="code-block">
+              <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> logs <span
+                class="keyword">WHERE</span> message =~ /error/
+            </div>
+            <p class="mt-3"><strong>Tasks:</strong></p>
+            <ol>
+              <li>Identify performance issues</li>
+              <li>Add appropriate filters</li>
+              <li>Rewrite with best practices</li>
+            </ol>
+            <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#solution3">
+              <i class="bi bi-eye"></i> Show Solution
+            </button>
+            <div class="collapse mt-3" id="solution3">
+              <div class="alert alert-warning">
+                <strong>Issues Found:</strong>
+                <ul>
+                  <li>No time range specified</li>
+                  <li>Using regex on field (expensive)</li>
+                  <li>SELECT * returns all fields</li>
+                  <li>No tag filters</li>
+                </ul>
+              </div>
+              <div class="code-block">
+                <span class="comment">-- Optimized Query (120ms - 95% faster!)</span>
+                <span class="keyword">SELECT</span> timestamp, service, message
+                <span class="keyword">FROM</span> logs
+                <span class="keyword">WHERE</span> log_level = <span class="string">'ERROR'</span> <span
+                  class="comment">-- Tag filter</span>
+                <span class="keyword">AND</span> service = <span class="string">'api'</span> <span class="comment">--
+                  Tag filter</span>
+                <span class="keyword">AND</span> time >= now() - 1h <span class="comment">-- Time filter</span>
+                <span class="keyword">LIMIT</span> 1000
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="resources" class="mb-5">
+          <h2 class="section-title">Summary and Resources</h2>
+
+          <div class="card">
+            <div class="card-header bg-primary text-white">
+              <i class="bi bi-trophy"></i> Key Takeaways
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <ul>
+                    <li><strong>Master Both Languages:</strong> Know when to use InfluxQL vs Flux</li>
+                    <li><strong>Filter Efficiently:</strong> Always filter on tags first</li>
+                    <li><strong>Choose Right Functions:</strong> Use appropriate aggregations</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <ul>
+                    <li><strong>Optimize Queries:</strong> Combine multiple techniques</li>
+                    <li><strong>Monitor Performance:</strong> Track query metrics</li>
+                    <li><strong>Practice:</strong> Apply learnings to real data</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-md-4">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-book display-4 text-primary"></i>
+                  <h5 class="mt-3">Documentation</h5>
+                  <p class="small">Official InfluxDB guides and references</p>
+                  <a href="https://docs.influxdata.com/" class="btn btn-outline-primary" target="_blank">
+                    Visit Docs <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-people display-4 text-primary"></i>
+                  <h5 class="mt-3">Community</h5>
+                  <p class="small">Join forums and discussions</p>
+                  <a href="https://community.influxdata.com/" class="btn btn-outline-primary" target="_blank">
+                    Join Community <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-github display-4 text-primary"></i>
+                  <h5 class="mt-3">GitHub</h5>
+                  <p class="small">Explore source code and examples</p>
+                  <a href="https://github.com/influxdata/influxdb" class="btn btn-outline-primary" target="_blank">
+                    View GitHub <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-tip mt-4">
+            <h5><i class="bi bi-rocket"></i> Next Steps</h5>
+            <ol class="mb-0">
+              <li>Complete all hands-on exercises</li>
+              <li>Practice with your own datasets</li>
+              <li>Optimize existing queries</li>
+              <li>Proceed to Module 5: Advanced Topics</li>
+              <li>Join the InfluxDB community</li>
+            </ol>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5><i class="bi bi-database"></i> InfluxDB Training</h5>
+          <p>Module 4: Querying and Aggregating Data</p>
+          <p class="small">Version 1.0 | Duration: 75 minutes | Level: Intermediate</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p><strong>Course Materials:</strong></p>
+          <ul class="list-unstyled">
+            <li><i class="bi bi-file-earmark-ppt"></i> PowerPoint Presentation</li>
+            <li><i class="bi bi-file-earmark-text"></i> Markdown Guide</li>
+            <li><i class="bi bi-globe"></i> Interactive HTML</li>
+          </ul>
+        </div>
+      </div>
+      <hr class="bg-light">
+      <div class="text-center">
+        <p class="mb-0">&copy; 2025 InfluxDB Training. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Active navigation highlight
+    window.addEventListener('scroll', () => {
+      let current = '';
+      const sections = document.querySelectorAll('section[id]');
+
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= sectionTop - 200) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      document.querySelectorAll('.toc-sidebar .list-group-item').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+
+      // Update progress bar
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('progress-bar').style.width = scrolled + '%';
+    });
+  </script>
+</body>
+
+</html>

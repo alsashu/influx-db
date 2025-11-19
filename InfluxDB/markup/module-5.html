@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfluxDB: Data Retention, Downsampling & Continuous Queries - 75 Minute Course</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Prism.js for Code Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #22ADF6;
+            --secondary-color: #9394FF;
+            --success-color: #00C851;
+            --warning-color: #ffbb33;
+            --danger-color: #ff4444;
+            --dark-bg: #1a1a2e;
+            --code-bg: #2d2d44;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 40px;
+        }
+        
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .course-info-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 50px;
+            margin: 10px;
+            display: inline-block;
+        }
+        
+        .sidebar {
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .sidebar .nav-link {
+            color: #495057;
+            padding: 10px 15px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #f8f9fa;
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .module-card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+        
+        .module-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px;
+            font-weight: 600;
+        }
+        
+        .code-block {
+            background: var(--code-bg);
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .code-header {
+            background: rgba(0,0,0,0.2);
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .copy-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .example-box {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning-color);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid var(--success-color);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .lab-exercise {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+        
+        .progress-tracker {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        
+        .key-concept {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .collapsible-section {
+            cursor: pointer;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            transition: background 0.3s ease;
+        }
+        
+        .collapsible-section:hover {
+            background: #e9ecef;
+        }
+        
+        .quiz-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: border-color 0.3s ease;
+        }
+        
+        .quiz-card.correct {
+            border-color: var(--success-color);
+            background: #d4edda;
+        }
+        
+        .quiz-card.incorrect {
+            border-color: var(--danger-color);
+            background: #f8d7da;
+        }
+        
+        .timer-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-weight: 600;
+            z-index: 1000;
+        }
+        
+        pre {
+            margin: 0;
+            padding: 15px;
+        }
+        
+        .btn-custom {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: scale(1.05);
+            color: white;
+        }
+        
+        .takeaway-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .takeaway-list li:last-child {
+            border-bottom: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                top: 0;
+            }
+            
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            
+            .timer-badge {
+                position: relative;
+                margin: 10px auto;
+                display: block;
+                width: fit-content;
+            }
+        }
+        
+        .table-of-contents {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Timer Badge -->
+    <div class="timer-badge">
+        <i class="bi bi-clock"></i> 
+        <span id="courseTimer">75:00</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="text-center">
+                <h1 class="mb-4">
+                    <i class="bi bi-database"></i> InfluxDB Mastery
+                </h1>
+                <h3 class="mb-4">Data Retention, Downsampling & Continuous Queries</h3>
+                <p class="lead">A Comprehensive 75-Minute Professional Course</p>
+                
+                <div class="mt-4">
+                    <span class="course-info-badge">
+                        <i class="bi bi-clock-fill"></i> 75 Minutes
+                    </span>
+                    <span class="course-info-badge">
+                        <i class="bi bi-bar-chart-fill"></i> Intermediate Level
+                    </span>
+                    <span class="course-info-badge">
+                        <i class="bi bi-trophy-fill"></i> 3 Labs Included
+                    </span>
+                    <span class="course-info-badge">
+                        <i class="bi bi-code-slash"></i> Hands-On Practice
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar">
+                    <div class="table-of-contents">
+                        <h5 class="mb-3"><i class="bi bi-list-ul"></i> Course Navigation</h5>
+                        <nav class="nav flex-column">
+                            <a class="nav-link active" href="#overview">Course Overview</a>
+                            <a class="nav-link" href="#module1">Module 1: Retention Policies</a>
+                            <a class="nav-link" href="#module2">Module 2: Downsampling</a>
+                            <a class="nav-link" href="#module3">Module 3: Continuous Queries</a>
+                            <a class="nav-link" href="#module4">Module 4: Lifecycle Management</a>
+                            <a class="nav-link" href="#labs">Hands-On Labs</a>
+                            <a class="nav-link" href="#best-practices">Best Practices</a>
+                            <a class="nav-link" href="#summary">Course Summary</a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <!-- Overview Section -->
+                <section id="overview" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-info-circle"></i> Course Overview</h2>
+                        </div>
+                        <div class="card-body">
+                            <h4>Learning Objectives</h4>
+                            <p>By completing this course, you will master:</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Understanding and implementing retention policies in InfluxDB</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Configuring automatic data downsampling strategies</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Creating and managing continuous queries for data aggregation</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Designing efficient data lifecycle management solutions</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Optimizing storage and query performance for large datasets</li>
+                            </ul>
+                            
+                            <div class="info-box mt-4">
+                                <h5><i class="bi bi-info-circle"></i> Prerequisites</h5>
+                                <p class="mb-0">Basic understanding of InfluxDB and time-series data concepts</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 1: Retention Policies -->
+                <section id="module1" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-hourglass-split"></i> Module 1: Understanding Retention Policies (20 min)</h2>
+                        </div>
+                        <div class="card-body">
+                            <h4>What are Retention Policies?</h4>
+                            <p class="lead">A retention policy (RP) is a set of rules that determines how long InfluxDB keeps data, how many copies are stored, and the time range covered by shard groups.</p>
+                            
+                            <div class="key-concept">
+                                <h5><i class="bi bi-lightbulb"></i> Key Concepts</h5>
+                                <ul>
+                                    <li><strong>Duration:</strong> How long data is retained before automatic deletion</li>
+                                    <li><strong>Replication Factor:</strong> Number of data copies (for clustered deployments)</li>
+                                    <li><strong>Shard Duration:</strong> Time range covered by each shard group</li>
+                                    <li><strong>Default Policy:</strong> Every database has at least one RP named "autogen"</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-4">Why Use Retention Policies?</h4>
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-3">
+                                    <div class="example-box">
+                                        <h6><i class="bi bi-graph-up"></i> Storage Optimization</h6>
+                                        <p class="mb-0">Automatically remove old data to save disk space</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="example-box">
+                                        <h6><i class="bi bi-currency-dollar"></i> Cost Reduction</h6>
+                                        <p class="mb-0">Lower storage costs for large-scale deployments</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="example-box">
+                                        <h6><i class="bi bi-speedometer2"></i> Performance Enhancement</h6>
+                                        <p class="mb-0">Smaller datasets result in faster queries</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="example-box">
+                                        <h6><i class="bi bi-shield-check"></i> Compliance</h6>
+                                        <p class="mb-0">Meet data retention regulations</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-4">Viewing Existing Retention Policies</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span style="color: #fff;"><i class="bi bi-terminal"></i> InfluxQL</span>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-sql">SHOW RETENTION POLICIES ON mydb</code></pre>
+                            </div>
+
+                            <h4 class="mt-4">Creating Retention Policies</h4>
+                            <p>Basic syntax for creating a retention policy:</p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span style="color: #fff;"><i class="bi bi-terminal"></i> Basic Syntax</span>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-sql">CREATE RETENTION POLICY <policy_name> 
+ON <database_name> 
+DURATION <duration> 
+REPLICATION <n> 
+[SHARD DURATION <duration>] 
+[DEFAULT]</code></pre>
+                            </div>
+
+                            <h5 class="mt-4">Practical Examples</h5>
+                            
+                            <div class="example-box">
+                                <h6>Example 1: Short-term Raw Data (7 days)</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">7-day retention</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">CREATE RETENTION POLICY "seven_days" 
+ON "sensor_data" 
+DURATION 7d 
+REPLICATION 1 
+SHARD DURATION 1d</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="example-box">
+                                <h6>Example 2: Medium-term Aggregated Data (90 days)</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">90-day retention</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">CREATE RETENTION POLICY "ninety_days" 
+ON "sensor_data" 
+DURATION 90d 
+REPLICATION 1 
+SHARD DURATION 7d</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="example-box">
+                                <h6>Example 3: Long-term Historical Data (2 years)</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">2-year retention</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">CREATE RETENTION POLICY "two_years" 
+ON "sensor_data" 
+DURATION 730d 
+REPLICATION 1 
+SHARD DURATION 30d</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="warning-box mt-4">
+                                <h5><i class="bi bi-exclamation-triangle"></i> Warning</h5>
+                                <p class="mb-0">Dropping a retention policy deletes all associated data. This action cannot be undone!</p>
+                            </div>
+
+                            <h4 class="mt-4">Best Practices</h4>
+                            <div class="success-box">
+                                <h6><i class="bi bi-check-circle"></i> Shard Duration Guidelines</h6>
+                                <ul class="mb-0">
+                                    <li>Data retained &lt; 7 days: shard duration = 1 day</li>
+                                    <li>Data retained 7 days - 6 months: shard duration = 7 days</li>
+                                    <li>Data retained &gt; 6 months: shard duration = 30 days</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h6><i class="bi bi-check-circle"></i> Common Patterns</h6>
+                                <pre class="mb-0" style="background: white; padding: 15px; border-radius: 8px;">Pattern 1 - Graduated Retention:
+├── raw_data (7 days, high granularity)
+├── rollup_1h (90 days, hourly aggregates)
+└── rollup_1d (2 years, daily aggregates)
+
+Pattern 2 - Hot/Warm/Cold:
+├── hot (7 days, fast SSD)
+├── warm (30 days, standard storage)
+└── cold (365 days, archive storage)</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 2: Downsampling -->
+                <section id="module2" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-graph-down"></i> Module 2: Downsampling Strategies (15 min)</h2>
+                        </div>
+                        <div class="card-body">
+                            <h4>Understanding Downsampling</h4>
+                            <p class="lead">Downsampling reduces the resolution of time-series data by aggregating high-frequency data points into lower-frequency summaries.</p>
+
+                            <div class="info-box">
+                                <h5><i class="bi bi-info-circle"></i> Visual Concept</h5>
+                                <pre class="mb-0" style="background: white; padding: 15px; border-radius: 8px;">Raw Data (1-minute intervals):
+[10:00, 23] [10:01, 25] [10:02, 22] [10:03, 28] [10:04, 26] [10:05, 24]
+
+Downsampled (5-minute intervals):
+[10:00-10:05, mean: 24.67, min: 22, max: 28, count: 6]</pre>
+                            </div>
+
+                            <h4 class="mt-4">Why Downsample?</h4>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="card text-center p-3 mb-3" style="border: 2px solid var(--primary-color);">
+                                        <div class="card-body">
+                                            <i class="bi bi-database-down" style="font-size: 3rem; color: var(--primary-color);"></i>
+                                            <h5 class="mt-3">Reduce Storage</h5>
+                                            <p class="mb-0">Fewer data points = less storage required</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card text-center p-3 mb-3" style="border: 2px solid var(--success-color);">
+                                        <div class="card-body">
+                                            <i class="bi bi-lightning" style="font-size: 3rem; color: var(--success-color);"></i>
+                                            <h5 class="mt-3">Improve Performance</h5>
+                                            <p class="mb-0">Aggregated data returns faster</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-4">Common Aggregation Functions</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead style="background: var(--primary-color); color: white;">
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Function</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td rowspan="4"><strong>Statistical</strong></td>
+                                            <td><code>MEAN()</code></td>
+                                            <td>Average value</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>MEDIAN()</code></td>
+                                            <td>Middle value</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>MODE()</code></td>
+                                            <td>Most frequent value</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>STDDEV()</code></td>
+                                            <td>Standard deviation</td>
+                                        </tr>
+                                        <tr>
+                                            <td rowspan="3"><strong>Range</strong></td>
+                                            <td><code>MIN()</code></td>
+                                            <td>Minimum value</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>MAX()</code></td>
+                                            <td>Maximum value</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>SPREAD()</code></td>
+                                            <td>Difference between min and max</td>
+                                        </tr>
+                                        <tr>
+                                            <td rowspan="2"><strong>Counting</strong></td>
+                                            <td><code>COUNT()</code></td>
+                                            <td>Number of points</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>SUM()</code></td>
+                                            <td>Total of all values</td>
+                                        </tr>
+                                        <tr>
+                                            <td rowspan="4"><strong>Selector</strong></td>
+                                            <td><code>FIRST()</code></td>
+                                            <td>First value in time range</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>LAST()</code></td>
+                                            <td>Last value in time range</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>TOP()</code></td>
+                                            <td>N highest values</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>BOTTOM()</code></td>
+                                            <td>N lowest values</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 class="mt-4">Designing a Downsampling Strategy</h4>
+                            <div class="example-box">
+                                <h6>Example Strategy: IoT Temperature Monitoring</h6>
+                                <pre class="mb-0" style="background: white; padding: 15px; border-radius: 8px;">Tier 1 (Real-time): 7 days, 10-second intervals
+Tier 2 (Recent):    30 days, 1-minute intervals
+Tier 3 (Historical): 90 days, 1-hour intervals
+Tier 4 (Archive):   2 years, 1-day intervals</pre>
+                            </div>
+
+                            <h4 class="mt-4">Handling Missing Data</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span style="color: #fff;">FILL Options</span>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-sql">-- Fill with previous value
+SELECT MEAN("value") FROM "sensor" 
+GROUP BY TIME(1h) FILL(previous)
+
+-- Fill with linear interpolation
+SELECT MEAN("value") FROM "sensor" 
+GROUP BY TIME(1h) FILL(linear)
+
+-- Fill with zero
+SELECT MEAN("value") FROM "sensor" 
+GROUP BY TIME(1h) FILL(0)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 3: Continuous Queries -->
+                <section id="module3" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-arrow-repeat"></i> Module 3: Continuous Queries (25 min)</h2>
+                        </div>
+                        <div class="card-body">
+                            <h4>What are Continuous Queries?</h4>
+                            <p class="lead">Continuous Queries (CQs) are InfluxQL queries that run automatically and periodically on real-time data, storing results in a specified measurement.</p>
+
+                            <div class="key-concept">
+                                <h5><i class="bi bi-lightbulb"></i> Key Characteristics</h5>
+                                <ul>
+                                    <li>Run at predefined intervals</li>
+                                    <li>Process data within specified time windows</li>
+                                    <li>Results written to target retention policy</li>
+                                    <li>Ideal for automatic downsampling</li>
+                                    <li>No manual intervention required</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-4">Basic Syntax</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span style="color: #fff;">CQ Structure</span>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-sql">CREATE CONTINUOUS QUERY <cq_name> 
+ON <database_name>
+BEGIN
+  SELECT <aggregation_function>(<field_key>)
+  INTO <target_measurement>
+  FROM <source_measurement>
+  GROUP BY time(<interval>)[, <tag_key>]
+END</code></pre>
+                            </div>
+
+                            <h4 class="mt-4">Practical Examples</h4>
+                            
+                            <div class="example-box">
+                                <h6>Example 1: Basic Hourly Aggregation</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">Hourly Temperature Averages</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">CREATE CONTINUOUS QUERY "cq_mean_temp_1h"
+ON "iot_database"
+BEGIN
+  SELECT MEAN("temperature") AS "mean_temp"
+  INTO "rollup_90d"."average_temps"
+  FROM "raw_data"."sensors"
+  GROUP BY time(1h), *
+END</code></pre>
+                                </div>
+                                <p class="mt-2 mb-0"><strong>What it does:</strong> Runs every hour, calculates mean temperature, stores in "rollup_90d" retention policy, preserves all tags.</p>
+                            </div>
+
+                            <div class="example-box">
+                                <h6>Example 2: Multiple Aggregations</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">Comprehensive Statistics</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">CREATE CONTINUOUS QUERY "cq_stats_1h"
+ON "iot_database"
+BEGIN
+  SELECT 
+    MEAN("temperature") AS "mean_temp",
+    MIN("temperature") AS "min_temp",
+    MAX("temperature") AS "max_temp",
+    COUNT("temperature") AS "sample_count"
+  INTO "rollup_90d"."sensor_stats"
+  FROM "raw_data"."sensors"
+  GROUP BY time(1h), "location", "device_id"
+END</code></pre>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-4">RESAMPLE Clause</h4>
+                            <p>The RESAMPLE clause handles late-arriving data and provides more control over CQ execution:</p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span style="color: #fff;">With RESAMPLE</span>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-sql">CREATE CONTINUOUS QUERY "cq_with_resample"
+ON "iot_database"
+RESAMPLE EVERY 30m FOR 2h
+BEGIN
+  SELECT MEAN("temperature")
+  INTO "rollup"."temp_stats"
+  FROM "raw"."sensors"
+  GROUP BY time(1h)
+END</code></pre>
+                            </div>
+
+                            <div class="info-box">
+                                <p><strong>EVERY 30m:</strong> CQ runs every 30 minutes (not every hour)</p>
+                                <p class="mb-0"><strong>FOR 2h:</strong> Processes last 2 hours of data each run (useful for late-arriving data)</p>
+                            </div>
+
+                            <h4 class="mt-4">Advanced Pattern: Multi-Tier Downsampling</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span style="color: #fff;">Cascading Aggregations</span>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-sql">-- 5-minute rollups
+CREATE CONTINUOUS QUERY "cq_5m"
+ON "metrics"
+BEGIN
+  SELECT MEAN("value") AS "mean_value"
+  INTO "metrics"."rp_30d"."rollup_5m"
+  FROM "metrics"."rp_7d"."raw_data"
+  GROUP BY time(5m), *
+END
+
+-- 1-hour rollups from 5-minute data
+CREATE CONTINUOUS QUERY "cq_1h"
+ON "metrics"
+BEGIN
+  SELECT MEAN("mean_value") AS "mean_value"
+  INTO "metrics"."rp_90d"."rollup_1h"
+  FROM "metrics"."rp_30d"."rollup_5m"
+  GROUP BY time(1h), *
+END
+
+-- 1-day rollups from 1-hour data
+CREATE CONTINUOUS QUERY "cq_1d"
+ON "metrics"
+BEGIN
+  SELECT MEAN("mean_value") AS "mean_value"
+  INTO "metrics"."rp_2y"."rollup_1d"
+  FROM "metrics"."rp_90d"."rollup_1h"
+  GROUP BY time(1d), *
+END</code></pre>
+                            </div>
+
+                            <h4 class="mt-4">Managing Continuous Queries</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="code-block">
+                                        <div class="code-header">
+                                            <span style="color: #fff;">List All CQs</span>
+                                            <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                        </div>
+                                        <pre><code class="language-sql">SHOW CONTINUOUS QUERIES</code></pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="code-block">
+                                        <div class="code-header">
+                                            <span style="color: #fff;">Drop a CQ</span>
+                                            <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                        </div>
+                                        <pre><code class="language-sql">DROP CONTINUOUS QUERY 
+"cq_name" ON "database"</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h5><i class="bi bi-check-circle"></i> CQ Best Practices</h5>
+                                <ul class="mb-0">
+                                    <li><strong>Naming:</strong> Use pattern <code>cq_&lt;metric&gt;_&lt;interval&gt;</code></li>
+                                    <li><strong>Testing:</strong> Always test query manually before creating CQ</li>
+                                    <li><strong>Performance:</strong> Use RESAMPLE for late-arriving data</li>
+                                    <li><strong>Complexity:</strong> Keep CQ logic simple, avoid nested subqueries</li>
+                                    <li><strong>Monitoring:</strong> Regularly check CQ execution status</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 4: Data Lifecycle Management -->
+                <section id="module4" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-diagram-3"></i> Module 4: Data Lifecycle Management (15 min)</h2>
+                        </div>
+                        <div class="card-body">
+                            <h4>Complete Lifecycle Strategy</h4>
+                            <p class="lead">A comprehensive approach to managing data from ingestion to deletion.</p>
+
+                            <div class="info-box">
+                                <h6>Lifecycle Stages</h6>
+                                <pre class="mb-0" style="background: white; padding: 15px; border-radius: 8px;">Stage 1: Ingestion (Real-time)
+├── High-frequency writes
+├── Raw, unprocessed data
+└── Short retention (hours to days)
+
+Stage 2: Active Analysis (Recent)
+├── Frequent queries
+├── Detailed granularity
+└── Medium retention (days to weeks)
+
+Stage 3: Historical Reference (Archive)
+├── Occasional queries
+├── Aggregated data
+└── Long retention (months to years)
+
+Stage 4: Deletion (Expired)
+├── Automatic cleanup
+└── Compliance with policies</pre>
+                            </div>
+
+                            <h4 class="mt-4">Complete Implementation Example</h4>
+                            <p><strong>Scenario:</strong> IoT temperature monitoring with 1000 sensors, 10-second sample rate</p>
+
+                            <div class="example-box">
+                                <h6>Step 1: Create Database</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">Database Setup</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">CREATE DATABASE "temperature_monitoring"</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="example-box">
+                                <h6>Step 2: Define Retention Policies</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">Multi-Tier Retention</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">-- Real-time data (7 days)
+CREATE RETENTION POLICY "rp_7d"
+ON "temperature_monitoring"
+DURATION 7d REPLICATION 1 SHARD DURATION 1d DEFAULT
+
+-- Short-term aggregates (30 days)
+CREATE RETENTION POLICY "rp_30d"
+ON "temperature_monitoring"
+DURATION 30d REPLICATION 1 SHARD DURATION 7d
+
+-- Medium-term aggregates (90 days)
+CREATE RETENTION POLICY "rp_90d"
+ON "temperature_monitoring"
+DURATION 90d REPLICATION 1 SHARD DURATION 7d
+
+-- Long-term aggregates (2 years)
+CREATE RETENTION POLICY "rp_2y"
+ON "temperature_monitoring"
+DURATION 730d REPLICATION 1 SHARD DURATION 30d</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="example-box">
+                                <h6>Step 3: Create Continuous Queries</h6>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">1-Minute Rollups</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">CREATE CONTINUOUS QUERY "cq_temp_1m"
+ON "temperature_monitoring"
+BEGIN
+  SELECT
+    MEAN("temperature") AS "mean_temp",
+    MIN("temperature") AS "min_temp",
+    MAX("temperature") AS "max_temp",
+    STDDEV("temperature") AS "stddev_temp",
+    COUNT("temperature") AS "sample_count"
+  INTO "temperature_monitoring"."rp_30d"."temp_1m"
+  FROM "temperature_monitoring"."rp_7d"."sensors"
+  GROUP BY time(1m), "sensor_id", "location"
+END</code></pre>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-4">Storage Calculation</h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Estimating Storage Requirements</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead style="background: var(--primary-color); color: white;">
+                                                <tr>
+                                                    <th>Tier</th>
+                                                    <th>Duration</th>
+                                                    <th>Interval</th>
+                                                    <th>Est. Storage</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Raw Data</td>
+                                                    <td>7 days</td>
+                                                    <td>10 seconds</td>
+                                                    <td>≈ 3.5 GB</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>1-min Rollups</td>
+                                                    <td>30 days</td>
+                                                    <td>1 minute</td>
+                                                    <td>≈ 8.6 GB</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>1-hour Rollups</td>
+                                                    <td>90 days</td>
+                                                    <td>1 hour</td>
+                                                    <td>≈ 432 MB</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>1-day Rollups</td>
+                                                    <td>2 years</td>
+                                                    <td>1 day</td>
+                                                    <td>≈ 146 MB</td>
+                                                </tr>
+                                                <tr style="background: #f8f9fa; font-weight: 600;">
+                                                    <td colspan="3">Total Storage</td>
+                                                    <td>≈ 12.7 GB</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-4">Monitoring Commands</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3">
+                                        <i class="bi bi-server" style="font-size: 2rem; color: var(--primary-color);"></i>
+                                        <h6 class="mt-2">Check Shards</h6>
+                                        <code>SHOW SHARDS</code>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3">
+                                        <i class="bi bi-speedometer" style="font-size: 2rem; color: var(--success-color);"></i>
+                                        <h6 class="mt-2">CQ Stats</h6>
+                                        <code>SHOW STATS FOR 'cq'</code>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3">
+                                        <i class="bi bi-list-check" style="font-size: 2rem; color: var(--secondary-color);"></i>
+                                        <h6 class="mt-2">List CQs</h6>
+                                        <code>SHOW CONTINUOUS QUERIES</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Labs Section -->
+                <section id="labs" class="mb-5">
+                    <div class="lab-exercise">
+                        <h2 class="text-white mb-4"><i class="bi bi-laptop"></i> Hands-On Lab Exercises</h2>
+                        
+                        <div class="card bg-white text-dark mb-3">
+                            <div class="card-body">
+                                <h4><i class="bi bi-1-circle"></i> Lab 1: Basic Retention Policy Setup (10 min)</h4>
+                                <p><strong>Objective:</strong> Create a multi-tier retention strategy</p>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">Lab 1 Code</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">-- Create database
+CREATE DATABASE "lab_exercise"
+
+-- Create retention policies
+CREATE RETENTION POLICY "raw" ON "lab_exercise" 
+DURATION 7d REPLICATION 1 SHARD DURATION 1d DEFAULT
+
+CREATE RETENTION POLICY "rollup_30d" ON "lab_exercise" 
+DURATION 30d REPLICATION 1 SHARD DURATION 7d
+
+CREATE RETENTION POLICY "rollup_1y" ON "lab_exercise" 
+DURATION 365d REPLICATION 1 SHARD DURATION 30d
+
+-- Verify
+SHOW RETENTION POLICIES ON "lab_exercise"</code></pre>
+                                </div>
+                                <button class="btn btn-success mt-3" onclick="markLabComplete(1)">
+                                    <i class="bi bi-check-circle"></i> Mark Complete
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white text-dark mb-3">
+                            <div class="card-body">
+                                <h4><i class="bi bi-2-circle"></i> Lab 2: Creating Continuous Queries (15 min)</h4>
+                                <p><strong>Objective:</strong> Implement automatic downsampling</p>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">Lab 2 Code</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">-- Insert sample data
+USE lab_exercise
+INSERT cpu_usage,host=server01,region=us-east value=45.2
+INSERT cpu_usage,host=server01,region=us-east value=52.1
+INSERT cpu_usage,host=server01,region=us-east value=48.7
+
+-- Create CQ for 5-minute aggregation
+CREATE CONTINUOUS QUERY "cq_cpu_5m"
+ON "lab_exercise"
+BEGIN
+  SELECT 
+    MEAN("value") AS "mean_cpu",
+    MAX("value") AS "max_cpu",
+    COUNT("value") AS "samples"
+  INTO "lab_exercise"."rollup_30d"."cpu_5m"
+  FROM "lab_exercise"."raw"."cpu_usage"
+  GROUP BY time(5m), *
+END
+
+-- Verify CQs
+SHOW CONTINUOUS QUERIES</code></pre>
+                                </div>
+                                <button class="btn btn-success mt-3" onclick="markLabComplete(2)">
+                                    <i class="bi bi-check-circle"></i> Mark Complete
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white text-dark">
+                            <div class="card-body">
+                                <h4><i class="bi bi-3-circle"></i> Lab 3: Complete Lifecycle Implementation (20 min)</h4>
+                                <p><strong>Objective:</strong> Build end-to-end data lifecycle system</p>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span style="color: #fff;">Lab 3 Code</span>
+                                        <button class="copy-btn" onclick="copyCode(this)"><i class="bi bi-clipboard"></i> Copy</button>
+                                    </div>
+                                    <pre><code class="language-sql">-- 1. Setup
+CREATE DATABASE "sensor_network"
+
+CREATE RETENTION POLICY "real_time" 
+ON "sensor_network" 
+DURATION 3d REPLICATION 1 SHARD DURATION 1h DEFAULT
+
+-- 2. Simulate data ingestion
+USE sensor_network
+INSERT temperature,sensor=temp01,location=warehouse value=22.5
+INSERT temperature,sensor=temp01,location=warehouse value=23.1
+
+-- 3. Create downsampling pipeline
+CREATE CONTINUOUS QUERY "cq_temp_1m"
+ON "sensor_network"
+BEGIN
+  SELECT 
+    MEAN("value") AS "avg_temp",
+    MIN("value") AS "min_temp",
+    MAX("value") AS "max_temp"
+  INTO "sensor_network"."weekly"."temp_1m"
+  FROM "sensor_network"."real_time"."temperature"
+  GROUP BY time(1m), "sensor", "location"
+END</code></pre>
+                                </div>
+                                <button class="btn btn-success mt-3" onclick="markLabComplete(3)">
+                                    <i class="bi bi-check-circle"></i> Mark Complete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Best Practices -->
+                <section id="best-practices" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-star"></i> Production Best Practices</h2>
+                        </div>
+                        <div class="card-body">
+                            <h4>Design Principles</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3 mb-3" style="border: 2px solid var(--primary-color);">
+                                        <i class="bi bi-graph-up-arrow" style="font-size: 3rem; color: var(--primary-color);"></i>
+                                        <h5 class="mt-3">Plan for Scale</h5>
+                                        <p class="mb-0">Estimate data growth over 12-24 months with 2x capacity buffer</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3 mb-3" style="border: 2px solid var(--success-color);">
+                                        <i class="bi bi-shield-check" style="font-size: 3rem; color: var(--success-color);"></i>
+                                        <h5 class="mt-3">Start Conservative</h5>
+                                        <p class="mb-0">Begin with shorter retentions and extend gradually</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3 mb-3" style="border: 2px solid var(--secondary-color);">
+                                        <i class="bi bi-file-text" style="font-size: 3rem; color: var(--secondary-color);"></i>
+                                        <h5 class="mt-3">Document Everything</h5>
+                                        <p class="mb-0">Maintain clear documentation of all policies and strategies</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-4">Monitoring Checklist</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-calendar-day"></i> Daily</h6>
+                                        <ul>
+                                            <li>CQ execution status</li>
+                                            <li>Write throughput</li>
+                                            <li>Storage usage trends</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-box">
+                                        <h6><i class="bi bi-calendar-week"></i> Weekly</h6>
+                                        <ul>
+                                            <li>Query performance review</li>
+                                            <li>Shard size distribution</li>
+                                            <li>CQ runtime analysis</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="warning-box">
+                                        <h6><i class="bi bi-calendar-month"></i> Monthly</h6>
+                                        <ul>
+                                            <li>Retention policy review</li>
+                                            <li>Capacity planning update</li>
+                                            <li>Archive strategy validation</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-4">Common Pitfalls to Avoid</h4>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead style="background: var(--danger-color); color: white;">
+                                        <tr>
+                                            <th>❌ Don't</th>
+                                            <th>✅ Do</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Create CQs without testing queries first</td>
+                                            <td>Test queries manually before creating CQs</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Use overly complex CQ logic</td>
+                                            <td>Keep CQ logic simple and maintainable</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Forget to handle late-arriving data</td>
+                                            <td>Use RESAMPLE for robustness</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Set retention too short initially</td>
+                                            <td>Start conservative and extend as needed</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Ignore monitoring and maintenance</td>
+                                            <td>Regularly monitor CQ performance</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Summary -->
+                <section id="summary" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-trophy"></i> Course Summary & Key Takeaways</h2>
+                        </div>
+                        <div class="card-body">
+                            <h4>What You've Learned</h4>
+                            <ul class="takeaway-list list-unstyled">
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Understanding and implementing retention policies</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Designing effective downsampling strategies</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Creating and managing continuous queries</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Building complete data lifecycle systems</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Production best practices and optimization</li>
+                            </ul>
+
+                            <div class="key-concept mt-4">
+                                <h5><i class="bi bi-lightbulb"></i> Critical Concepts</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>1. Retention Policies are the Foundation</h6>
+                                        <p>Define data lifecycle early, align with business requirements, and balance cost with functionality.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>2. Downsampling Reduces Costs</h6>
+                                        <p>Use automatic continuous queries with graduated granularity while preserving necessary context.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>3. Continuous Queries Enable Automation</h6>
+                                        <p>Real-time aggregation, pre-computed queries, and reduced query-time processing.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>4. Lifecycle Management is Holistic</h6>
+                                        <p>Consider entire data journey, monitor and adjust regularly, document all decisions.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h5><i class="bi bi-signpost-2"></i> Next Steps</h5>
+                                <ol>
+                                    <li>Implement retention policies in your environment</li>
+                                    <li>Create your first continuous query</li>
+                                    <li>Monitor and tune performance</li>
+                                    <li>Scale your strategy as needed</li>
+                                    <li>Share your knowledge with your team</li>
+                                </ol>
+                            </div>
+
+                            <div class="text-center mt-5">
+                                <button class="btn btn-custom btn-lg" onclick="completeCourse()">
+                                    <i class="bi bi-award"></i> Complete Course & Get Certificate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Resources -->
+                <section id="resources" class="mb-5">
+                    <div class="card module-card">
+                        <div class="card-header bg-dark text-white">
+                            <h4><i class="bi bi-book"></i> Additional Resources</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Official Documentation</h5>
+                                    <ul>
+                                        <li><a href="https://docs.influxdata.com/influxdb/v1.8/query_language/manage-database/" target="_blank">Retention Policy Management</a></li>
+                                        <li><a href="https://docs.influxdata.com/influxdb/v1.8/query_language/continuous_queries/" target="_blank">Continuous Queries Guide</a></li>
+                                        <li><a href="https://docs.influxdata.com/influxdb/v1.8/query_language/functions/" target="_blank">InfluxQL Functions</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Community Resources</h5>
+                                    <ul>
+                                        <li>InfluxDB Community Forum</li>
+                                        <li>GitHub Issues and Discussions</li>
+                                        <li>Stack Overflow #influxdb tag</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">InfluxDB: Data Retention, Downsampling & Continuous Queries | 75-Minute Professional Course</p>
+            <p class="text-muted mt-2">Created with ❤️ for InfluxDB enthusiasts</p>
+        </div>
+    </footer>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker" id="progressTracker">
+        <span id="progressText">0%</span>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Prism.js for Code Highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Copy Code Function
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                button.style.background = 'rgba(0, 200, 83, 0.3)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = 'rgba(255,255,255,0.1)';
+                }, 2000);
+            });
+        }
+
+        // Timer Functionality
+        let courseMinutes = 75;
+        let courseSeconds = 0;
+        let timerInterval;
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (courseSeconds === 0) {
+                    if (courseMinutes === 0) {
+                        clearInterval(timerInterval);
+                        document.getElementById('courseTimer').textContent = 'Complete!';
+                        return;
+                    }
+                    courseMinutes--;
+                    courseSeconds = 59;
+                } else {
+                    courseSeconds--;
+                }
+                
+                const displayMinutes = String(courseMinutes).padStart(2, '0');
+                const displaySeconds = String(courseSeconds).padStart(2, '0');
+                document.getElementById('courseTimer').textContent = `${displayMinutes}:${displaySeconds}`;
+            }, 1000);
+        }
+
+        // Progress Tracking
+        let completedSections = 0;
+        const totalSections = 8;
+
+        function updateProgress() {
+            const progress = Math.round((completedSections / totalSections) * 100);
+            document.getElementById('progressText').textContent = `${progress}%`;
+        }
+
+        // Smooth Scroll for Navigation
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                // Remove active class from all links
+                document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Scroll to section
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Update progress
+                completedSections++;
+                updateProgress();
+            });
+        });
+
+        // Scroll Spy Effect
+        window.addEventListener('scroll', function() {
+            let scrollPosition = window.pageYOffset;
+            
+            document.querySelectorAll('section[id]').forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionHeight = section.offsetHeight;
+                const sectionId = section.getAttribute('id');
+                
+                if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${sectionId}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Lab Completion
+        let completedLabs = 0;
+        function markLabComplete(labNumber) {
+            const button = event.target;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-secondary');
+            button.innerHTML = '<i class="bi bi-check-circle-fill"></i> Completed';
+            button.disabled = true;
+            
+            completedLabs++;
+            if (completedLabs === 3) {
+                alert('Congratulations! You have completed all lab exercises! 🎉');
+            }
+        }
+
+        // Course Completion
+        function completeCourse() {
+            const name = prompt('Enter your name for the certificate:');
+            if (name) {
+                alert(`🎉 Congratulations ${name}! You have successfully completed the InfluxDB Data Retention, Downsampling & Continuous Queries course!
+
+Skills Acquired:
+✓ Retention Policy Management
+✓ Data Downsampling Techniques  
+✓ Continuous Query Development
+✓ Data Lifecycle Strategy Design
+✓ Performance Optimization
+
+Keep building amazing time-series applications!`);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            startTimer();
+            
+            // Add animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.module-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

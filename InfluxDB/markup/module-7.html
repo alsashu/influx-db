@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfluxDB: Visualization, Monitoring & Alerting - 60 Minute Course</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Prism.js for Code Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: #f8f9fa;
+        }
+        
+        .hero-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 100px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,197.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            animation: fadeInDown 0.8s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .course-badge {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 12px 28px;
+            border-radius: 50px;
+            margin: 10px 8px;
+            display: inline-block;
+            font-weight: 600;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .course-badge:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
+        }
+        
+        .timer-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            font-weight: 700;
+            font-size: 1.2rem;
+            z-index: 1050;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .sidebar {
+            position: sticky;
+            top: 90px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .nav-box {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        
+        .nav-box .nav-link {
+            color: #495057;
+            padding: 14px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .nav-box .nav-link:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+            border-left-color: #667eea;
+            transform: translateX(8px);
+            color: #667eea;
+        }
+        
+        .nav-box .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-left-color: #764ba2;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .module-card {
+            background: white;
+            border: none;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+            transition: all 0.4s ease;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .module-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 35px;
+            position: relative;
+        }
+        
+        .module-header h2 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.9rem;
+        }
+        
+        .tool-comparison-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tool-comparison-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        .tool-logo {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .pros-cons-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .pros-cons-list li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .pros-cons-list li::before {
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .pros-cons-list.pros li::before {
+            content: '✅';
+        }
+        
+        .pros-cons-list.cons li::before {
+            content: '❌';
+        }
+        
+        .code-block {
+            background: #272822;
+            border-radius: 15px;
+            margin: 25px 0;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        
+        .code-header {
+            background: rgba(0,0,0,0.3);
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-language {
+            color: #66d9ef;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        
+        .copy-btn {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 6px solid #2196F3;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.15);
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border-left: 6px solid #ff9800;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.15);
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 6px solid #4caf50;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15);
+        }
+        
+        .danger-box {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-left: 6px solid #f44336;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.15);
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 2px solid transparent;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: #667eea;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 4rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }
+        
+        .comparison-table th {
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 600;
+            padding: 20px;
+            border: none;
+        }
+        
+        .comparison-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .lab-section {
+            background: var(--warning-gradient);
+            color: white;
+            padding: 50px;
+            border-radius: 25px;
+            margin: 50px 0;
+            box-shadow: 0 15px 50px rgba(240, 147, 251, 0.3);
+        }
+        
+        .lab-card {
+            background: white;
+            color: #2c3e50;
+            border-radius: 20px;
+            padding: 35px;
+            margin: 25px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .lab-number {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 50%;
+            line-height: 50px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        .progress-tracker {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            z-index: 1050;
+            border: 5px solid #667eea;
+            color: #667eea;
+        }
+        
+        .btn-custom {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            padding: 15px 45px;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+            color: white;
+        }
+        
+        .star-rating {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .checklist li:hover {
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .architecture-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px dashed #667eea;
+            margin: 25px 0;
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 50px 0;
+            margin-top: 100px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .sidebar {
+                position: relative;
+                top: 0;
+                margin-bottom: 30px;
+            }
+            
+            .timer-badge {
+                position: relative;
+                margin: 15px auto;
+                display: block;
+                width: fit-content;
+            }
+            
+            .progress-tracker {
+                width: 60px;
+                height: 60px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Timer Badge -->
+    <div class="timer-badge">
+        <i class="bi bi-stopwatch-fill"></i> 
+        <span id="courseTimer">60:00</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="text-center position-relative">
+                <h1 class="hero-title">
+                    <i class="bi bi-graph-up"></i> InfluxDB Visualization
+                </h1>
+                <h2 class="mb-4">Monitoring & Alerting Mastery</h2>
+                <p class="lead mb-4">Comprehensive 60-Minute Professional Course</p>
+                
+                <div class="mt-4">
+                    <span class="course-badge">
+                        <i class="bi bi-clock-fill"></i> 60 Minutes
+                    </span>
+                    <span class="course-badge">
+                        <i class="bi bi-bar-chart-line-fill"></i> Intermediate/Advanced
+                    </span>
+                    <span class="course-badge">
+                        <i class="bi bi-laptop-fill"></i> 4 Labs
+                    </span>
+                    <span class="course-badge">
+                        <i class="bi bi-bell-fill"></i> Production Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar">
+                    <div class="nav-box">
+                        <h5 class="mb-3 fw-bold text-center">
+                            <i class="bi bi-list-ul"></i> Navigation
+                        </h5>
+                        <nav class="nav flex-column">
+                            <a class="nav-link active" href="#overview">
+                                <i class="bi bi-info-circle me-2"></i>Overview
+                            </a>
+                            <a class="nav-link" href="#module1">
+                                <i class="bi bi-layers me-2"></i>Visualization Tools
+                            </a>
+                            <a class="nav-link" href="#module2">
+                                <i class="bi bi-grid-3x3 me-2"></i>Building Dashboards
+                            </a>
+                            <a class="nav-link" href="#module3">
+                                <i class="bi bi-activity me-2"></i>Monitoring InfluxDB
+                            </a>
+                            <a class="nav-link" href="#module4">
+                                <i class="bi bi-bell me-2"></i>Alerting Systems
+                            </a>
+                            <a class="nav-link" href="#labs">
+                                <i class="bi bi-laptop me-2"></i>Labs
+                            </a>
+                            <a class="nav-link" href="#summary">
+                                <i class="bi bi-trophy me-2"></i>Summary
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <!-- Overview Section -->
+                <section id="overview" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-info-circle-fill"></i> Course Overview</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4 class="mb-4">What You'll Master</h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-easel feature-icon"></i>
+                                        <h5>Visualization Tools</h5>
+                                        <p class="mb-0">Compare and select the right tool for your needs</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-grid-1x2 feature-icon"></i>
+                                        <h5>Dashboard Design</h5>
+                                        <p class="mb-0">Build effective, beautiful dashboards</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-heart-pulse feature-icon"></i>
+                                        <h5>Health Monitoring</h5>
+                                        <p class="mb-0">Monitor InfluxDB performance</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-exclamation-triangle feature-icon"></i>
+                                        <h5>Smart Alerting</h5>
+                                        <p class="mb-0">Set up comprehensive alert systems</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-box mt-4">
+                                <h5><i class="bi bi-bookmark-check-fill"></i> Prerequisites</h5>
+                                <p class="mb-0">Basic understanding of InfluxDB, InfluxQL/Flux queries, and time-series data concepts</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 1: Visualization Tools -->
+                <section id="module1" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-palette-fill"></i> Module 1: Visualization Tools (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Visualization Landscape</h4>
+                            
+                            <div class="architecture-box">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-diagram-3"></i> Tool Ecosystem</h6>
+                                <pre class="mb-0" style="background: white; color: #2c3e50; padding: 20px; border-radius: 10px;">Visualization Options:
+├── Native InfluxData Stack
+│   ├── Chronograf (TICK Stack)
+│   └── InfluxDB UI (v2.x built-in)
+├── Third-Party Tools
+│   ├── Grafana ⭐ (Most Popular)
+│   ├── Tableau
+│   └── Kibana (via plugin)
+└── Custom Code
+    ├── Python (matplotlib, plotly)
+    └── JavaScript (Chart.js, D3.js)</pre>
+                            </div>
+
+                            <h4 class="mt-5">Tool Comparison</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="tool-comparison-card">
+                                        <div class="tool-logo text-center">📊</div>
+                                        <h5 class="text-center mb-3">Chronograf</h5>
+                                        <p class="text-muted">Part of the TICK Stack</p>
+                                        
+                                        <h6 class="mt-3">Pros:</h6>
+                                        <ul class="pros-cons-list pros">
+                                            <li>Native InfluxDB integration</li>
+                                            <li>Simple setup</li>
+                                            <li>Pre-built templates</li>
+                                            <li>Kapacitor integration</li>
+                                        </ul>
+                                        
+                                        <h6 class="mt-3">Cons:</h6>
+                                        <ul class="pros-cons-list cons">
+                                            <li>Limited visualization types</li>
+                                            <li>Less flexible than Grafana</li>
+                                            <li>Smaller community</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="tool-comparison-card" style="border-color: #667eea; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);">
+                                        <div class="tool-logo text-center">📈</div>
+                                        <h5 class="text-center mb-3">Grafana <span class="badge bg-primary">Recommended</span></h5>
+                                        <p class="text-muted">Most popular visualization platform</p>
+                                        
+                                        <h6 class="mt-3">Pros:</h6>
+                                        <ul class="pros-cons-list pros">
+                                            <li>100+ panel types</li>
+                                            <li>Advanced alerting</li>
+                                            <li>500+ plugins</li>
+                                            <li>Multi-datasource support</li>
+                                            <li>Large community</li>
+                                        </ul>
+                                        
+                                        <h6 class="mt-3">Cons:</h6>
+                                        <ul class="pros-cons-list cons">
+                                            <li>Steeper learning curve</li>
+                                            <li>Separate installation</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Installation Guide</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Grafana - Docker</h6>
+                                    <div class="code-block">
+                                        <div class="code-header">
+                                            <span class="code-language">bash</span>
+                                            <button class="copy-btn" onclick="copyCode(this)">
+                                                <i class="bi bi-clipboard"></i> Copy
+                                            </button>
+                                        </div>
+                                        <pre><code class="language-bash">docker run -d \\
+  -p 3000:3000 \\
+  -v grafana-storage:/var/lib/grafana \\
+  --name grafana \\
+  grafana/grafana-oss:latest
+
+# Access: http://localhost:3000
+# Login: admin / admin</code></pre>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6>Chronograf - Docker</h6>
+                                    <div class="code-block">
+                                        <div class="code-header">
+                                            <span class="code-language">bash</span>
+                                            <button class="copy-btn" onclick="copyCode(this)">
+                                                <i class="bi bi-clipboard"></i> Copy
+                                            </button>
+                                        </div>
+                                        <pre><code class="language-bash">docker run -d \\
+  -p 8888:8888 \\
+  -v chronograf-data:/var/lib/chronograf \\
+  --name chronograf \\
+  chronograf:latest
+
+# Access: http://localhost:8888</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Decision Matrix</h4>
+                            <div class="comparison-table">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Criteria</th>
+                                            <th>Chronograf</th>
+                                            <th>Grafana</th>
+                                            <th>InfluxDB UI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Ease of Setup</strong></td>
+                                            <td><span class="star-rating">⭐⭐⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐⭐⭐</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Visualization Options</strong></td>
+                                            <td><span class="star-rating">⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐⭐</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Alerting</strong></td>
+                                            <td><span class="star-rating">⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐⭐</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Community Support</strong></td>
+                                            <td><span class="star-rating">⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐⭐⭐</span></td>
+                                            <td><span class="star-rating">⭐⭐⭐</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-lightbulb-fill"></i> Recommendation</h6>
+                                <p class="mb-0"><strong>Use Grafana</strong> for production dashboards with advanced visualizations, powerful alerting, and multi-datasource support. It's the industry standard and has the largest community.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 2: Building Dashboards -->
+                <section id="module2" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-grid-3x3-gap-fill"></i> Module 2: Building Dashboards (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Dashboard Design Principles</h4>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <div class="info-box text-center">
+                                        <i class="bi bi-bullseye" style="font-size: 3rem; color: #2196F3;"></i>
+                                        <h6 class="mt-3">Purpose-Driven</h6>
+                                        <p class="mb-0 small">Define clear dashboard goals</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-box text-center">
+                                        <i class="bi bi-layout-three-columns" style="font-size: 3rem; color: #2196F3;"></i>
+                                        <h6 class="mt-3">Information Hierarchy</h6>
+                                        <p class="mb-0 small">Most important metrics on top</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-box text-center">
+                                        <i class="bi bi-palette" style="font-size: 3rem; color: #2196F3;"></i>
+                                        <h6 class="mt-3">Visual Best Practices</h6>
+                                        <p class="mb-0 small">Consistent colors and labels</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Chart Type Selection</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-graph-up" style="font-size: 3rem; color: #667eea;"></i>
+                                        <h6>Time Series Line</h6>
+                                        <p class="text-muted small">Trends over time</p>
+                                        <p class="mb-0 small"><strong>Use for:</strong> CPU usage, memory, request rates</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-speedometer2" style="font-size: 3rem; color: #4caf50;"></i>
+                                        <h6>Single Stat / Gauge</h6>
+                                        <p class="text-muted small">Current values, KPIs</p>
+                                        <p class="mb-0 small"><strong>Use for:</strong> Current CPU %, disk usage</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-bar-chart" style="font-size: 3rem; color: #ff9800;"></i>
+                                        <h6>Bar Chart</h6>
+                                        <p class="text-muted small">Compare categories</p>
+                                        <p class="mb-0 small"><strong>Use for:</strong> Top 10 servers, error counts</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-grid-3x3" style="font-size: 3rem; color: #f44336;"></i>
+                                        <h6>Heatmap</h6>
+                                        <p class="text-muted small">Patterns and density</p>
+                                        <p class="mb-0 small"><strong>Use for:</strong> Latency distribution, error rates</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Example: CPU Usage Panel</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language">InfluxQL Query</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-sql">SELECT 100 - mean("usage_idle") AS "cpu_usage" 
+FROM "cpu" 
+WHERE $timeFilter 
+  AND "cpu" = 'cpu-total' 
+  AND "host" =~ /^$host$/
+GROUP BY time($__interval), "host" 
+FILL(null)</code></pre>
+                            </div>
+
+                            <div class="warning-box mt-4">
+                                <h6><i class="bi bi-exclamation-triangle-fill"></i> Dashboard Best Practices</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Do:</strong>
+                                        <ul class="checklist">
+                                            <li>Use consistent colors</li>
+                                            <li>Add clear labels</li>
+                                            <li>Include variables for filtering</li>
+                                            <li>Group related metrics</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Don't:</strong>
+                                        <ul class="checklist">
+                                            <li>Overload with too many panels</li>
+                                            <li>Use default titles</li>
+                                            <li>Ignore mobile view</li>
+                                            <li>Skip documentation</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 3: Monitoring InfluxDB -->
+                <section id="module3" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-heart-pulse-fill"></i> Module 3: Monitoring InfluxDB (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Internal Metrics Overview</h4>
+                            
+                            <div class="info-box">
+                                <h6><i class="bi bi-database-fill"></i> Internal Database</h6>
+                                <p>InfluxDB exposes metrics via the <code>_internal</code> database (v1.x) or <code>_monitoring</code> bucket (v2.x)</p>
+                            </div>
+
+                            <h5 class="mt-4">Key Metrics to Monitor</h5>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-pencil-square" style="font-size: 3rem; color: #667eea;"></i>
+                                        <h6>Write Performance</h6>
+                                        <ul class="text-start small">
+                                            <li>Write request rate</li>
+                                            <li>Points per second</li>
+                                            <li>Write errors</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-search" style="font-size: 3rem; color: #4caf50;"></i>
+                                        <h6>Query Performance</h6>
+                                        <ul class="text-start small">
+                                            <li>Query execution rate</li>
+                                            <li>Average duration</li>
+                                            <li>Query errors</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-memory" style="font-size: 3rem; color: #ff9800;"></i>
+                                        <h6>Memory & Cache</h6>
+                                        <ul class="text-start small">
+                                            <li>Cache size</li>
+                                            <li>Cache hit ratio</li>
+                                            <li>Memory usage</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-card">
+                                        <i class="bi bi-hdd" style="font-size: 3rem; color: #f44336;"></i>
+                                        <h6>Storage</h6>
+                                        <ul class="text-start small">
+                                            <li>Disk usage</li>
+                                            <li>Shard statistics</li>
+                                            <li>Series cardinality</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="mt-5">Example Monitoring Queries</h5>
+                            
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language">Write Throughput</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-sql">-- Points written per second
+SELECT derivative(mean("pointReq"), 1s) AS "points_per_sec"
+FROM "_internal"."monitor"."write"
+WHERE time > now() - 1h
+GROUP BY time(1m)</code></pre>
+                            </div>
+
+                            <div class="code-block mt-3">
+                                <div class="code-header">
+                                    <span class="code-language">Query Duration</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-sql">-- Average query duration (milliseconds)
+SELECT mean("queryDurationNs") / 1000000 AS "avg_duration_ms"
+FROM "_internal"."monitor"."queryExecutor"
+WHERE time > now() - 1h
+GROUP BY time(1m)</code></pre>
+                            </div>
+
+                            <h5 class="mt-5">Telegraf Configuration</h5>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language">telegraf.conf</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-toml">[[inputs.influxdb]]
+  urls = ["http://localhost:8086/debug/vars"]
+  timeout = "5s"
+
+[[inputs.cpu]]
+  percpu = true
+  totalcpu = true
+
+[[inputs.mem]]
+
+[[inputs.disk]]
+  mount_points = ["/var/lib/influxdb"]
+
+[[outputs.influxdb_v2]]
+  urls = ["http://localhost:8086"]
+  token = "$INFLUX_TOKEN"
+  organization = "my-org"
+  bucket = "monitoring"</code></pre>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-check-circle-fill"></i> Health Check Endpoint</h6>
+                                <pre class="mb-0" style="background: white; color: #2c3e50; padding: 15px; border-radius: 8px;">curl http://localhost:8086/health
+
+# Response:
+{
+  "name": "influxdb",
+  "status": "pass",
+  "version": "2.0.0"
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 4: Alerting -->
+                <section id="module4" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-bell-fill"></i> Module 4: Alerting Systems (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Alert Design Principles</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="danger-box text-center">
+                                        <i class="bi bi-exclamation-octagon" style="font-size: 3rem; color: #f44336;"></i>
+                                        <h6 class="mt-3">CRITICAL</h6>
+                                        <p class="mb-0 small">Immediate action required</p>
+                                        <p class="small"><em>Example: Database down</em></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="warning-box text-center">
+                                        <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #ff9800;"></i>
+                                        <h6 class="mt-3">WARNING</h6>
+                                        <p class="mb-0 small">Attention needed soon</p>
+                                        <p class="small"><em>Example: Disk > 80%</em></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-box text-center">
+                                        <i class="bi bi-info-circle" style="font-size: 3rem; color: #2196F3;"></i>
+                                        <h6 class="mt-3">INFO</h6>
+                                        <p class="mb-0 small">Informational only</p>
+                                        <p class="small"><em>Example: Backup complete</em></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Grafana Alert Configuration</h4>
+                            
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language">Alert Rule JSON</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-json">{
+  "name": "High CPU Usage",
+  "conditions": [{
+    "type": "query",
+    "evaluator": {
+      "type": "gt",
+      "params": [80]
+    }
+  }],
+  "executionErrorState": "alerting",
+  "frequency": "1m",
+  "for": "5m",
+  "message": "CPU usage above 80% for 5 minutes",
+  "notifications": [
+    {"uid": "slack-channel"}
+  ]
+}</code></pre>
+                            </div>
+
+                            <h5 class="mt-5">Notification Channels</h5>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-slack" style="font-size: 3rem; color: #4A154B;"></i>
+                                        <h6>Slack</h6>
+                                        <p class="small mb-0">Team chat alerts</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-envelope" style="font-size: 3rem; color: #EA4335;"></i>
+                                        <h6>Email</h6>
+                                        <p class="small mb-0">Email notifications</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-phone" style="font-size: 3rem; color: #06AC38;"></i>
+                                        <h6>PagerDuty</h6>
+                                        <p class="small mb-0">On-call paging</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="feature-card">
+                                        <i class="bi bi-webhook" style="font-size: 3rem; color: #667eea;"></i>
+                                        <h6>Webhook</h6>
+                                        <p class="small mb-0">Custom integrations</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box mt-4">
+                                <h6><i class="bi bi-lightbulb-fill"></i> Alert Best Practices</h6>
+                                <ul class="checklist mb-0">
+                                    <li>Make alerts actionable with clear next steps</li>
+                                    <li>Use appropriate severity levels</li>
+                                    <li>Add evaluation periods to prevent false alarms</li>
+                                    <li>Include context in alert messages</li>
+                                    <li>Test alerts before production deployment</li>
+                                    <li>Document response procedures</li>
+                                    <li>Review and tune alert thresholds regularly</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Labs Section -->
+                <section id="labs" class="mb-5">
+                    <div class="lab-section">
+                        <h2 class="text-white mb-4">
+                            <i class="bi bi-laptop"></i> Hands-On Labs
+                        </h2>
+                        <p class="lead text-white mb-5">Apply your knowledge with practical exercises</p>
+                        
+                        <div class="lab-card">
+                            <span class="lab-number">1</span>
+                            <h4 class="d-inline">Build Complete Grafana Dashboard (15 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Create production-ready system monitoring dashboard</p>
+                            <div class="mt-3">
+                                <strong>Tasks:</strong>
+                                <ul>
+                                    <li>Install Grafana via Docker</li>
+                                    <li>Connect to InfluxDB data source</li>
+                                    <li>Create 6 panels (CPU, Memory, Disk, Network, Load, Processes)</li>
+                                    <li>Add host filtering variables</li>
+                                    <li>Configure auto-refresh (30s)</li>
+                                    <li>Export dashboard JSON</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(1)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <span class="lab-number">2</span>
+                            <h4 class="d-inline">Set Up InfluxDB Monitoring (10 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Monitor InfluxDB internal metrics</p>
+                            <div class="mt-3">
+                                <strong>Tasks:</strong>
+                                <ul>
+                                    <li>Query internal metrics from _internal database</li>
+                                    <li>Configure Telegraf for InfluxDB monitoring</li>
+                                    <li>Build InfluxDB health dashboard</li>
+                                    <li>Monitor write/query performance</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(2)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <span class="lab-number">3</span>
+                            <h4 class="d-inline">Configure Multi-Channel Alerting (15 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Set up comprehensive alerting</p>
+                            <div class="mt-3">
+                                <strong>Requirements:</strong>
+                                <ul>
+                                    <li>Create Slack notification channel</li>
+                                    <li>Create email notification channel</li>
+                                    <li>Set up 3 alerts:
+                                        <ul>
+                                            <li>High CPU (> 80% for 5min) → Slack</li>
+                                            <li>High query latency (> 5s) → Email</li>
+                                            <li>Database down → Slack + Email</li>
+                                        </ul>
+                                    </li>
+                                    <li>Test each alert</li>
+                                    <li>Document response procedures</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(3)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <span class="lab-number">4</span>
+                            <h4 class="d-inline">Create Custom Visualization (10 min)</h4>
+                            <p class="mt-3"><strong>Objective:</strong> Build custom chart with Python</p>
+                            <div class="mt-3">
+                                <strong>Tasks:</strong>
+                                <ul>
+                                    <li>Install influxdb-client for Python</li>
+                                    <li>Query CPU data for last hour</li>
+                                    <li>Create matplotlib visualization</li>
+                                    <li>Add threshold lines (warning/critical)</li>
+                                    <li>Save as high-resolution PNG</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(4)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Summary -->
+                <section id="summary" class="mb-5">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-trophy-fill"></i> Course Summary</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Key Takeaways</h4>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle-fill"></i> Visualization</h6>
+                                        <ul class="mb-0">
+                                            <li>Grafana for production</li>
+                                            <li>Appropriate chart types</li>
+                                            <li>Dashboard best practices</li>
+                                            <li>Template variables</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle-fill"></i> Monitoring</h6>
+                                        <ul class="mb-0">
+                                            <li>Internal metrics (_internal)</li>
+                                            <li>Telegraf configuration</li>
+                                            <li>Health check endpoints</li>
+                                            <li>Performance tracking</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle-fill"></i> Alerting</h6>
+                                        <ul class="mb-0">
+                                            <li>Severity levels</li>
+                                            <li>Multi-channel notifications</li>
+                                            <li>Actionable alerts</li>
+                                            <li>Alert testing</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle-fill"></i> Best Practices</h6>
+                                        <ul class="mb-0">
+                                            <li>Purpose-driven design</li>
+                                            <li>Regular review and tuning</li>
+                                            <li>Documentation</li>
+                                            <li>Testing before production</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-5">
+                                <button class="btn btn-custom btn-lg" onclick="completeCourse()">
+                                    <i class="bi bi-award-fill"></i> Complete Course & Get Certificate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <h4 class="mb-3">InfluxDB: Visualization, Monitoring & Alerting</h4>
+            <p class="lead">60-Minute Professional Course</p>
+            <p class="text-muted mt-4">Master the art of observability with InfluxDB</p>
+        </div>
+    </footer>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <span id="progressText">0%</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Copy code function
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const original = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                button.style.background = 'rgba(76, 175, 80, 0.5)';
+                
+                setTimeout(() => {
+                    button.innerHTML = original;
+                    button.style.background = 'rgba(102, 126, 234, 0.2)';
+                }, 2000);
+            });
+        }
+
+        // Timer
+        let minutes = 60, seconds = 0;
+        setInterval(() => {
+            if (seconds === 0) {
+                if (minutes === 0) return;
+                minutes--;
+                seconds = 59;
+            } else {
+                seconds--;
+            }
+            document.getElementById('courseTimer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+
+        // Navigation and progress
+        const sections = document.querySelectorAll('section[id]');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            document.querySelectorAll('.nav-box .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+            
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            document.getElementById('progressText').textContent = Math.round(scrolled) + '%';
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Lab completion
+        let completedLabs = 0;
+        function markLabComplete(labNumber) {
+            event.target.classList.remove('btn-success');
+            event.target.classList.add('btn-secondary');
+            event.target.innerHTML = '<i class="bi bi-check-circle-fill"></i> Completed';
+            event.target.disabled = true;
+            completedLabs++;
+            
+            if (completedLabs === 4) {
+                setTimeout(() => {
+                    alert('🎉 Amazing! All labs completed!');
+                }, 500);
+            }
+        }
+
+        // Course completion
+        function completeCourse() {
+            const name = prompt('Enter your name for the certificate:');
+            if (name) {
+                alert(`🎉 Congratulations ${name}!
+
+You've successfully completed:
+InfluxDB Visualization, Monitoring & Alerting
+
+Skills Mastered:
+✓ Visualization Tool Selection
+✓ Dashboard Design & Development
+✓ InfluxDB Health Monitoring
+✓ Comprehensive Alerting Setup
+✓ Production Best Practices
+
+You're now ready to build world-class observability systems!`);
+            }
+        }
+    </script>
+</body>
+</html>

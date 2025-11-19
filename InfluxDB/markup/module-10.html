@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 10: Capstone Project & Best Practices - InfluxDB Training</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Prism.js for syntax highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --info-color: #3b82f6;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+
+    .main-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header-section {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 50px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+      animation: pulse 15s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      50% {
+        transform: translate(-5%, -5%) scale(1.1);
+      }
+    }
+
+    .header-section h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-section .lead {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge-custom {
+      font-size: 1rem;
+      padding: 12px 24px;
+      margin: 5px;
+      border-radius: 25px;
+    }
+
+    .nav-pills .nav-link {
+      color: #667eea;
+      border-radius: 12px;
+      margin: 8px 0;
+      padding: 12px 20px;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-pills .nav-link:hover {
+      background-color: #f3f4f6;
+      transform: translateX(8px);
+    }
+
+    .nav-pills .nav-link.active {
+      background: var(--primary-gradient);
+      color: white;
+      transform: translateX(8px);
+    }
+
+    .nav-pills .nav-link i {
+      margin-right: 10px;
+      width: 20px;
+    }
+
+    .content-section {
+      padding: 40px;
+    }
+
+    .section-title {
+      color: #667eea;
+      border-bottom: 4px solid #667eea;
+      padding-bottom: 15px;
+      margin-bottom: 30px;
+      font-weight: bold;
+      font-size: 2rem;
+    }
+
+    .phase-card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      margin-bottom: 25px;
+      transition: all 0.3s;
+      overflow: hidden;
+    }
+
+    .phase-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .phase-card .card-header {
+      background: var(--primary-gradient);
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 20px;
+      border-radius: 15px 15px 0 0 !important;
+    }
+
+    .phase-number {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background: white;
+      color: #667eea;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 40px;
+      font-weight: bold;
+      margin-right: 15px;
+    }
+
+    .code-block {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      position: relative;
+      border: 2px solid #334155;
+    }
+
+    .code-block .copy-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+      z-index: 10;
+    }
+
+    .code-block .copy-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .architecture-diagram {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 3px solid #667eea;
+      border-radius: 15px;
+      padding: 30px;
+      margin: 25px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .checklist {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 20px 0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .checklist-item {
+      padding: 12px;
+      margin: 8px 0;
+      border-left: 4px solid var(--success-color);
+      background: #f0fdf4;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .checklist-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+    }
+
+    .checklist-item i {
+      color: var(--success-color);
+      margin-right: 10px;
+      font-size: 1.1rem;
+    }
+
+    .metric-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .metric-value {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #667eea;
+      margin: 10px 0;
+    }
+
+    .metric-label {
+      color: #6b7280;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .best-practice-box {
+      background: linear-gradient(135deg, #d1fae515 0%, #6ee7b715 100%);
+      border-left: 5px solid var(--success-color);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    .warning-box {
+      background: linear-gradient(135deg, #fef3c715 0%, #fde68a15 100%);
+      border-left: 5px solid var(--warning-color);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #dbeafe15 0%, #93c5fd15 100%);
+      border-left: 5px solid var(--info-color);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    .progress-timeline {
+      position: relative;
+      padding-left: 40px;
+      margin: 30px 0;
+    }
+
+    .progress-timeline::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -33px;
+      top: 25px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #667eea;
+      border: 4px solid white;
+      box-shadow: 0 0 0 3px #667eea;
+    }
+
+    .comparison-table {
+      margin: 30px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .comparison-table th {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 20px;
+      font-weight: bold;
+    }
+
+    .comparison-table td {
+      padding: 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .btn-phase {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 30px;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin: 10px 5px;
+    }
+
+    .btn-phase:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
+
+    .score-card {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      margin: 20px 0;
+    }
+
+    .score-circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: conic-gradient(#667eea 0deg 252deg, #e5e7eb 252deg 360deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto;
+      position: relative;
+    }
+
+    .score-circle::before {
+      content: '';
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .score-text {
+      position: relative;
+      z-index: 1;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .future-feature {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border-radius: 12px;
+      padding: 25px;
+      margin: 15px 0;
+      border: 2px solid #667eea;
+      transition: all 0.3s;
+    }
+
+    .future-feature:hover {
+      transform: translateX(10px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .header-section h1 {
+        font-size: 2rem;
+      }
+
+      .content-section {
+        padding: 20px;
+      }
+
+      .phase-number {
+        width: 35px;
+        height: 35px;
+        line-height: 35px;
+        font-size: 0.9rem;
+      }
+    }
+
+    .tab-content {
+      animation: fadeInUp 0.5s;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .completion-badge {
+      display: inline-block;
+      background: var(--primary-gradient);
+      color: white;
+      padding: 60px 40px;
+      border-radius: 50%;
+      font-size: 3rem;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="main-container">
+      <!-- Header -->
+      <div class="header-section">
+        <h1><i class="fas fa-trophy"></i> Module 10: Capstone Project & Best Practices</h1>
+        <p class="lead">Build Your Production-Ready Enterprise Monitoring System</p>
+        <div class="mt-4">
+          <span class="badge badge-custom bg-light text-dark"><i class="far fa-clock"></i> 30 Minutes</span>
+          <span class="badge badge-custom bg-light text-dark"><i class="fas fa-graduation-cap"></i> Advanced
+            Level</span>
+          <span class="badge badge-custom bg-light text-dark"><i class="fas fa-project-diagram"></i> Hands-On
+            Project</span>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="row g-0">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3 bg-light">
+          <div class="p-4">
+            <h5 class="text-center mb-4"><i class="fas fa-compass"></i> Navigation</h5>
+            <nav class="nav nav-pills flex-column" id="module-nav">
+              <a class="nav-link active" href="#overview"><i class="fas fa-eye"></i>Overview</a>
+              <a class="nav-link" href="#phase1"><i class="fas fa-drafting-compass"></i>Phase 1: Design</a>
+              <a class="nav-link" href="#phase2"><i class="fas fa-database"></i>Phase 2: Collection</a>
+              <a class="nav-link" href="#phase3"><i class="fas fa-save"></i>Phase 3: Storage</a>
+              <a class="nav-link" href="#phase4"><i class="fas fa-search"></i>Phase 4: Querying</a>
+              <a class="nav-link" href="#phase5"><i class="fas fa-chart-line"></i>Phase 5: Visualization</a>
+              <a class="nav-link" href="#phase6"><i class="fas fa-bell"></i>Phase 6: Alerting</a>
+              <a class="nav-link" href="#performance"><i class="fas fa-tachometer-alt"></i>Performance</a>
+              <a class="nav-link" href="#best-practices"><i class="fas fa-star"></i>Best Practices</a>
+              <a class="nav-link" href="#future"><i class="fas fa-rocket"></i>Future Roadmap</a>
+              <a class="nav-link" href="#assessment"><i class="fas fa-certificate"></i>Assessment</a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="col-md-9">
+          <div class="content-section">
+            <!-- Overview -->
+            <section id="overview">
+              <h2 class="section-title">Project Overview</h2>
+              <p class="lead">Congratulations on reaching the capstone module! You'll now build a complete,
+                production-ready monitoring system that demonstrates everything you've learned.</p>
+
+              <div class="row mt-4">
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <i class="fas fa-server feature-icon"></i>
+                    <div class="metric-value">5+</div>
+                    <div class="metric-label">Servers Monitored</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <i class="fas fa-bolt feature-icon"></i>
+                    <div class="metric-value">100+</div>
+                    <div class="metric-label">Points/Second</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <i class="fas fa-clock feature-icon"></i>
+                    <div class="metric-value">7-365</div>
+                    <div class="metric-label">Day Retention</div>
+                  </div>
+                </div>
+              </div>
+
+              <h4 class="mt-5"><i class="fas fa-tasks"></i> Project Requirements</h4>
+              <div class="checklist">
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Data Collection:</strong> Monitor CPU, memory, disk, and network metrics
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Storage:</strong> Implement multi-tier retention (7d/90d/1y)
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Querying:</strong> Real-time and historical analysis
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Visualization:</strong> Live dashboards with Grafana
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Alerting:</strong> Threshold and anomaly detection
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Performance:</strong> Handle target load efficiently
+                </div>
+              </div>
+            </section>
+
+            <!-- Phase 1 -->
+            <section id="phase1" class="mt-5">
+              <h2 class="section-title">Phase 1: Architecture Design</h2>
+
+              <div class="phase-card">
+                <div class="card-header">
+                  <span class="phase-number">1</span>
+                  System Architecture
+                </div>
+                <div class="card-body">
+                  <h5>High-Level Design</h5>
+                  <div class="architecture-diagram">┌─────────────────────────────────────────────────────┐
+                    │ Data Sources Layer │
+                    │ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+                    │ │ Server 1 │ │ Server 2 │ │ Server N │ │
+                    │ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+                    └───────┼─────────────┼─────────────┼────────────────┘
+                    │ │ │
+                    └─────────────┼─────────────┘
+                    │
+                    ┌─────────────▼─────────────┐
+                    │ Collection Agent │
+                    │ (Python/Telegraf) │
+                    └─────────────┬─────────────┘
+                    │
+                    ┌─────────────▼─────────────┐
+                    │ InfluxDB 2.x │
+                    │ │
+                    │ ┌─────────────────────┐ │
+                    │ │ Raw Metrics (7d) │ │
+                    │ └──────────┬──────────┘ │
+                    │ │ │
+                    │ ┌──────────▼──────────┐ │
+                    │ │ Aggregated (90d) │ │
+                    │ └──────────┬──────────┘ │
+                    │ │ │
+                    │ ┌──────────▼──────────┐ │
+                    │ │ Historical (1y) │ │
+                    │ └─────────────────────┘ │
+                    └─────────────┬─────────────┘
+                    │
+                    ┌─────────────┴─────────────┐
+                    │ │ │
+                    ┌─────▼─────┐ ┌────▼────┐ ┌─────▼─────┐
+                    │ Tasks │ │ Grafana │ │ Alerts │
+                    │(Downsamp.)│ │(Visualz)│ │(Notifs) │
+                    └───────────┘ └─────────┘ └───────────┘</div>
+
+                  <h5 class="mt-4">Bucket Strategy</h5>
+                  <table class="table comparison-table">
+                    <thead>
+                      <tr>
+                        <th>Bucket</th>
+                        <th>Retention</th>
+                        <th>Precision</th>
+                        <th>Purpose</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>system_metrics_raw</td>
+                        <td>7 days</td>
+                        <td>1 second</td>
+                        <td>High detail</td>
+                      </tr>
+                      <tr>
+                        <td>system_metrics_1h</td>
+                        <td>90 days</td>
+                        <td>1 hour</td>
+                        <td>Analysis</td>
+                      </tr>
+                      <tr>
+                        <td>system_metrics_1d</td>
+                        <td>1 year</td>
+                        <td>1 day</td>
+                        <td>Historical</td>
+                      </tr>
+                      <tr>
+                        <td>alerts_history</td>
+                        <td>30 days</td>
+                        <td>1 second</td>
+                        <td>Alert logs</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- Phase 2 -->
+            <section id="phase2" class="mt-5">
+              <h2 class="section-title">Phase 2: Data Collection</h2>
+
+              <div class="phase-card">
+                <div class="card-header">
+                  <span class="phase-number">2</span>
+                  Python Monitoring Agent
+                </div>
+                <div class="card-body">
+                  <p>Build a comprehensive monitoring agent that collects system metrics.</p>
+
+                  <div class="info-box">
+                    <h5><i class="fas fa-info-circle"></i> Agent Features</h5>
+                    <ul>
+                      <li>Multi-metric collection (CPU, Memory, Disk, Network)</li>
+                      <li>Batch writing with configurable intervals</li>
+                      <li>Error handling and retry logic</li>
+                      <li>Structured logging</li>
+                      <li>Docker-ready deployment</li>
+                    </ul>
+                  </div>
+
+                  <h5 class="mt-4">Quick Start</h5>
+                  <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-bash"># Install dependencies
+pip install influxdb-client psutil
+
+# Set environment variables
+export INFLUX_URL="http://localhost:8086"
+export INFLUX_TOKEN="your-token"
+export INFLUX_ORG="myorg"
+export INFLUX_BUCKET="system_metrics_raw"
+
+# Run the agent
+python monitoring_agent.py</code></pre>
+                  </div>
+
+                  <h5 class="mt-4">Docker Deployment</h5>
+                  <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-bash"># Deploy multi-server simulation
+docker-compose up -d
+
+# View logs
+docker-compose logs -f monitoring-agent-1
+
+# Scale agents
+docker-compose up -d --scale monitoring-agent=5</code></pre>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Phase 3 -->
+            <section id="phase3" class="mt-5">
+              <h2 class="section-title">Phase 3: Storage & Retention</h2>
+
+              <div class="phase-card">
+                <div class="card-header">
+                  <span class="phase-number">3</span>
+                  Multi-Tier Retention Strategy
+                </div>
+                <div class="card-body">
+                  <div class="progress-timeline">
+                    <div class="timeline-item">
+                      <h5><i class="fas fa-database"></i> Tier 1: Raw Data</h5>
+                      <p><strong>7 days retention</strong> - 1-second precision for real-time monitoring and debugging
+                      </p>
+                    </div>
+                    <div class="timeline-item">
+                      <h5><i class="fas fa-compress"></i> Tier 2: Hourly Aggregates</h5>
+                      <p><strong>90 days retention</strong> - Hourly averages for trend analysis and capacity planning
+                      </p>
+                    </div>
+                    <div class="timeline-item">
+                      <h5><i class="fas fa-archive"></i> Tier 3: Daily Summaries</h5>
+                      <p><strong>1 year retention</strong> - Daily statistics for long-term historical analysis</p>
+                    </div>
+                  </div>
+
+                  <h5 class="mt-4">Downsampling Task Example</h5>
+                  <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-flux">// Hourly Downsampling Task
+option task = {
+    name: "Hourly Downsampling",
+    every: 1h,
+    offset: 5m
+}
+
+from(bucket: "system_metrics_raw")
+    |> range(start: -1h)
+    |> filter(fn: (r) => r._measurement == "system_metrics")
+    |> aggregateWindow(
+        every: 1h,
+        fn: mean,
+        createEmpty: false
+    )
+    |> to(bucket: "system_metrics_1h", org: "myorg")</code></pre>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Phase 4 -->
+            <section id="phase4" class="mt-5">
+              <h2 class="section-title">Phase 4: Querying & Analytics</h2>
+
+              <div class="phase-card">
+                <div class="card-header">
+                  <span class="phase-number">4</span>
+                  Essential Queries
+                </div>
+                <div class="card-body">
+                  <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#query-status">
+                        Real-Time Status
+                      </button>
+                    </li>
+                    <li class="nav-item">
+                      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#query-trends">
+                        Trends
+                      </button>
+                    </li>
+                    <li class="nav-item">
+                      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#query-anomaly">
+                        Anomalies
+                      </button>
+                    </li>
+                  </ul>
+
+                  <div class="tab-content mt-3">
+                    <div class="tab-pane fade show active" id="query-status">
+                      <h5>Current System Status</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-flux">from(bucket: "system_metrics_raw")
+    |> range(start: -5m)
+    |> filter(fn: (r) => r._measurement == "system_metrics")
+    |> filter(fn: (r) => 
+        r._field == "cpu_usage_percent" or 
+        r._field == "memory_usage_percent"
+    )
+    |> last()
+    |> pivot(rowKey:["_time"], 
+             columnKey: ["_field"], 
+             valueColumn: "_value")
+    |> group(columns: ["host"])</code></pre>
+                      </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="query-trends">
+                      <h5>24-Hour Trend Analysis</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-flux">from(bucket: "system_metrics_raw")
+    |> range(start: -24h)
+    |> filter(fn: (r) => r._measurement == "system_metrics")
+    |> filter(fn: (r) => r._field == "cpu_usage_percent")
+    |> aggregateWindow(every: 1h, fn: mean)
+    |> yield(name: "hourly_cpu_average")</code></pre>
+                      </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="query-anomaly">
+                      <h5>Anomaly Detection</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-flux">// Calculate z-score for anomaly detection
+data = from(bucket: "system_metrics_raw")
+    |> range(start: -7d)
+    |> filter(fn: (r) => r._field == "cpu_usage_percent")
+    |> aggregateWindow(every: 5m, fn: mean)
+
+// Identify values beyond 2 standard deviations
+data
+    |> map(fn: (r) => ({
+        r with
+        z_score: (r._value - mean) / stddev,
+        is_anomaly: if abs(z_score) > 2.0 
+                    then 1 else 0
+    }))
+    |> filter(fn: (r) => r.is_anomaly == 1)</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Phase 5 -->
+            <section id="phase5" class="mt-5">
+              <h2 class="section-title">Phase 5: Visualization</h2>
+
+              <div class="phase-card">
+                <div class="card-header">
+                  <span class="phase-number">5</span>
+                  Grafana Dashboard
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="metric-card">
+                        <i class="fas fa-chart-line" style="font-size: 3rem; color: #667eea;"></i>
+                        <h5 class="mt-3">Time Series</h5>
+                        <p>CPU & Memory trends over time</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="metric-card">
+                        <i class="fas fa-tachometer-alt" style="font-size: 3rem; color: #667eea;"></i>
+                        <h5 class="mt-3">Gauges</h5>
+                        <p>Real-time resource utilization</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="metric-card">
+                        <i class="fas fa-chart-bar" style="font-size: 3rem; color: #667eea;"></i>
+                        <h5 class="mt-3">Bar Charts</h5>
+                        <p>Server comparison views</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="metric-card">
+                        <i class="fas fa-table" style="font-size: 3rem; color: #667eea;"></i>
+                        <h5 class="mt-3">Tables</h5>
+                        <p>Detailed metrics breakdown</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="best-practice-box mt-4">
+                    <h5><i class="fas fa-lightbulb"></i> Dashboard Best Practices</h5>
+                    <ul>
+                      <li>Group related metrics together</li>
+                      <li>Use consistent color schemes</li>
+                      <li>Set appropriate refresh intervals (10-30s)</li>
+                      <li>Add threshold lines for context</li>
+                      <li>Include time range selectors</li>
+                      <li>Enable auto-refresh for live monitoring</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Phase 6 -->
+            <section id="phase6" class="mt-5">
+              <h2 class="section-title">Phase 6: Alerting</h2>
+
+              <div class="phase-card">
+                <div class="card-header">
+                  <span class="phase-number">6</span>
+                  Alert Configuration
+                </div>
+                <div class="card-body">
+                  <h5>Alert Types</h5>
+                  <div class="row mt-3">
+                    <div class="col-md-4">
+                      <div class="info-box text-center">
+                        <i class="fas fa-thermometer-three-quarters" style="font-size: 2.5rem; color: #ef4444;"></i>
+                        <h5 class="mt-3">Threshold</h5>
+                        <p>Static limits (e.g., CPU > 90%)</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="info-box text-center">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; color: #f59e0b;"></i>
+                        <h5 class="mt-3">Anomaly</h5>
+                        <p>Statistical outlier detection</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="info-box text-center">
+                        <i class="fas fa-heartbeat" style="font-size: 2.5rem; color: #10b981;"></i>
+                        <h5 class="mt-3">Deadman</h5>
+                        <p>Missing data detection</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h5 class="mt-4">Alert Check Example</h5>
+                  <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-flux">// High CPU Alert
+option task = {
+    name: "Alert: High CPU Usage",
+    every: 1m
+}
+
+from(bucket: "system_metrics_raw")
+    |> range(start: -5m)
+    |> filter(fn: (r) => r._field == "cpu_usage_percent")
+    |> mean()
+    |> monitor.check(
+        crit: (r) => r._value >= 90.0,
+        warn: (r) => r._value >= 70.0,
+        messageFn: (r) => "CPU: ${r._value}% on ${r.host}"
+    )
+    |> monitor.write(bucket: "alerts_history")</code></pre>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Performance -->
+            <section id="performance" class="mt-5">
+              <h2 class="section-title">Performance Validation & Tuning</h2>
+
+              <div class="best-practice-box">
+                <h4><i class="fas fa-rocket"></i> Performance Benchmarks</h4>
+                <div class="row mt-4">
+                  <div class="col-md-3">
+                    <div class="metric-card">
+                      <div class="metric-value">1000+</div>
+                      <div class="metric-label">Writes/sec</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="metric-card">
+                      <div class="metric-value">&lt;100ms</div>
+                      <div class="metric-label">Query P95</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="metric-card">
+                      <div class="metric-value">10K+</div>
+                      <div class="metric-label">Series</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="metric-card">
+                      <div class="metric-value">99.9%</div>
+                      <div class="metric-label">Uptime</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h4 class="mt-4"><i class="fas fa-tools"></i> Optimization Checklist</h4>
+              <div class="checklist">
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Write Optimization:</strong> Use batch writes (1000-5000 points)
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Query Optimization:</strong> Use specific time ranges and early filtering
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Tag Cardinality:</strong> Keep unique tag combinations &lt; 100K
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Resource Allocation:</strong> 4-8GB RAM minimum, SSD storage
+                </div>
+                <div class="checklist-item">
+                  <i class="fas fa-check-circle"></i>
+                  <strong>Retention Policies:</strong> Implement multi-tier downsampling
+                </div>
+              </div>
+            </section>
+
+            <!-- Best Practices -->
+            <section id="best-practices" class="mt-5">
+              <h2 class="section-title">Production Best Practices</h2>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="phase-card">
+                    <div class="card-header">
+                      <i class="fas fa-shield-alt"></i> Security
+                    </div>
+                    <div class="card-body">
+                      <ul>
+                        <li>✅ Enable authentication</li>
+                        <li>✅ Use HTTPS/TLS</li>
+                        <li>✅ Implement token rotation</li>
+                        <li>✅ Use least-privilege tokens</li>
+                        <li>✅ Enable audit logging</li>
+                        <li>✅ Network isolation</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="phase-card">
+                    <div class="card-header">
+                      <i class="fas fa-server"></i> High Availability
+                    </div>
+                    <div class="card-body">
+                      <ul>
+                        <li>✅ Load balancer setup</li>
+                        <li>✅ Database replication</li>
+                        <li>✅ Automated failover</li>
+                        <li>✅ Health checks</li>
+                        <li>✅ Backup strategy</li>
+                        <li>✅ Disaster recovery plan</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="phase-card">
+                    <div class="card-header">
+                      <i class="fas fa-database"></i> Backup & Recovery
+                    </div>
+                    <div class="card-body">
+                      <ul>
+                        <li>✅ Daily automated backups</li>
+                        <li>✅ Off-site storage (S3)</li>
+                        <li>✅ Backup verification</li>
+                        <li>✅ Point-in-time recovery</li>
+                        <li>✅ RTO: 4 hours</li>
+                        <li>✅ RPO: 1 hour</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="phase-card">
+                    <div class="card-header">
+                      <i class="fas fa-chart-line"></i> Monitoring
+                    </div>
+                    <div class="card-body">
+                      <ul>
+                        <li>✅ Monitor InfluxDB itself</li>
+                        <li>✅ Resource utilization</li>
+                        <li>✅ Query performance</li>
+                        <li>✅ Write throughput</li>
+                        <li>✅ Error rates</li>
+                        <li>✅ Disk usage trends</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Future Roadmap -->
+            <section id="future" class="mt-5">
+              <h2 class="section-title">Future Roadmap: InfluxDB 3.x</h2>
+
+              <div class="future-feature">
+                <div class="row align-items-center">
+                  <div class="col-md-2 text-center">
+                    <i class="fas fa-arrow-up feature-icon"></i>
+                  </div>
+                  <div class="col-md-10">
+                    <h4>Apache Arrow & Parquet</h4>
+                    <p>Modern columnar format for better performance and interoperability</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="future-feature">
+                <div class="row align-items-center">
+                  <div class="col-md-2 text-center">
+                    <i class="fas fa-cloud feature-icon"></i>
+                  </div>
+                  <div class="col-md-10">
+                    <h4>Object Storage Native</h4>
+                    <p>Built for S3/cloud storage with 80% cost reduction</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="future-feature">
+                <div class="row align-items-center">
+                  <div class="col-md-2 text-center">
+                    <i class="fas fa-database feature-icon"></i>
+                  </div>
+                  <div class="col-md-10">
+                    <h4>SQL Support</h4>
+                    <p>Full SQL query support alongside Flux for better BI integration</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="future-feature">
+                <div class="row align-items-center">
+                  <div class="col-md-2 text-center">
+                    <i class="fas fa-bolt feature-icon"></i>
+                  </div>
+                  <div class="col-md-10">
+                    <h4>Better Performance</h4>
+                    <p>5-10x query performance improvement with optimized architecture</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comparison-table mt-4">
+                <table class="table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Feature</th>
+                      <th>InfluxDB 2.x</th>
+                      <th>InfluxDB 3.x</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Storage Format</td>
+                      <td>TSM (Proprietary)</td>
+                      <td>Apache Parquet (Standard)</td>
+                    </tr>
+                    <tr>
+                      <td>Query Language</td>
+                      <td>Flux only</td>
+                      <td>SQL + Flux</td>
+                    </tr>
+                    <tr>
+                      <td>Storage Backend</td>
+                      <td>Local disk</td>
+                      <td>Object storage (S3, GCS)</td>
+                    </tr>
+                    <tr>
+                      <td>Cost (per GB/month)</td>
+                      <td>$0.10</td>
+                      <td>$0.02 (80% reduction)</td>
+                    </tr>
+                    <tr>
+                      <td>Query Performance</td>
+                      <td>Baseline</td>
+                      <td>5-10x faster</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Assessment -->
+            <section id="assessment" class="mt-5">
+              <h2 class="section-title">Final Assessment</h2>
+
+              <div class="score-card">
+                <h3><i class="fas fa-award"></i> Project Evaluation</h3>
+                <div class="score-circle">
+                  <span class="score-text">100</span>
+                </div>
+                <p class="lead">Total Points Available</p>
+              </div>
+
+              <table class="table comparison-table">
+                <thead>
+                  <tr>
+                    <th>Component</th>
+                    <th>Points</th>
+                    <th>Criteria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Data Collection</td>
+                    <td>20</td>
+                    <td>Working, efficient agent</td>
+                  </tr>
+                  <tr>
+                    <td>Storage & Retention</td>
+                    <td>15</td>
+                    <td>Multi-tier implementation</td>
+                  </tr>
+                  <tr>
+                    <td>Querying</td>
+                    <td>15</td>
+                    <td>Optimized queries</td>
+                  </tr>
+                  <tr>
+                    <td>Visualization</td>
+                    <td>15</td>
+                    <td>Real-time dashboards</td>
+                  </tr>
+                  <tr>
+                    <td>Alerting</td>
+                    <td>15</td>
+                    <td>Accurate triggers</td>
+                  </tr>
+                  <tr>
+                    <td>Performance</td>
+                    <td>10</td>
+                    <td>Meets targets</td>
+                  </tr>
+                  <tr>
+                    <td>Documentation</td>
+                    <td>10</td>
+                    <td>Complete & clear</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="text-center mt-5 mb-5">
+                <div class="completion-badge">
+                  <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h2 class="mt-4">Congratulations!</h2>
+                <p class="lead">You've completed the InfluxDB Training Course</p>
+
+                <div class="mt-4">
+                  <button class="btn-phase btn-lg" onclick="alert('🎉 Congratulations on completing the course!')">
+                    <i class="fas fa-certificate"></i> Get Certificate
+                  </button>
+                  <button class="btn-phase btn-lg" onclick="alert('Download all course materials')">
+                    <i class="fas fa-download"></i> Download Materials
+                  </button>
+                </div>
+
+                <div class="mt-5">
+                  <h4>Next Steps</h4>
+                  <div class="row mt-3">
+                    <div class="col-md-4">
+                      <div class="info-box">
+                        <i class="fas fa-laptop-code" style="font-size: 2rem;"></i>
+                        <h5 class="mt-3">Practice</h5>
+                        <p>Build more projects</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="info-box">
+                        <i class="fas fa-users" style="font-size: 2rem;"></i>
+                        <h5 class="mt-3">Community</h5>
+                        <p>Join InfluxDB forums</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="info-box">
+                        <i class="fas fa-rocket" style="font-size: 2rem;"></i>
+                        <h5 class="mt-3">Advance</h5>
+                        <p>Explore InfluxDB 3.x</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Prism.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+
+  <script>
+    // Copy code functionality
+    function copyCode(button) {
+      const codeBlock = button.nextElementSibling;
+      const code = codeBlock.textContent;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.style.background = '#10b981';
+
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.style.background = '';
+        }, 2000);
+      });
+    }
+
+    // Smooth scrolling
+    document.querySelectorAll('#module-nav a').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const targetSection = document.querySelector(targetId);
+
+        if (targetSection) {
+          targetSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+
+          // Update active state
+          document.querySelectorAll('#module-nav a').forEach(a => a.classList.remove('active'));
+          this.classList.add('active');
+        }
+      });
+    });
+
+    // Highlight active section
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section[id]');
+      let current = '';
+
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= (sectionTop - 100)) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      document.querySelectorAll('#module-nav a').forEach(a => {
+        a.classList.remove('active');
+        if (a.getAttribute('href') === '#' + current) {
+          a.classList.add('active');
+        }
+      });
+    });
+
+    // Initialize syntax highlighting
+    Prism.highlightAll();
+  </script>
+</body>
+
+</html>

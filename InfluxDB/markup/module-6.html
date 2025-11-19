@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfluxDB: Performance Tuning and Scaling - 75 Minute Course</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Prism.js for Code Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --success-color: #95E1D3;
+            --warning-color: #FFE66D;
+            --danger-color: #F38181;
+            --dark-bg: #2C3E50;
+            --light-bg: #ECF0F1;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #2C3E50;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+        }
+        
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .course-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 50px;
+            margin: 8px;
+            display: inline-block;
+            font-weight: 600;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .sidebar {
+            position: sticky;
+            top: 80px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .nav-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .nav-card .nav-link {
+            color: #495057;
+            padding: 12px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .nav-card .nav-link:hover {
+            background: #f8f9fa;
+            border-left-color: #667eea;
+            transform: translateX(5px);
+            color: #667eea;
+        }
+        
+        .nav-card .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-left-color: #764ba2;
+        }
+        
+        .module-card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .module-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .module-header h2 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+        
+        .module-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+        
+        .code-block {
+            background: #1e1e3f;
+            border-radius: 12px;
+            margin: 25px 0;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .code-header {
+            background: rgba(0,0,0,0.3);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-language {
+            color: #a8b9d0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .copy-btn {
+            background: rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(102, 126, 234, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .copy-btn.copied {
+            background: rgba(149, 225, 211, 0.5);
+            border-color: rgba(149, 225, 211, 0.7);
+        }
+        
+        pre {
+            margin: 0;
+            padding: 25px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #2196F3;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 3px 10px rgba(33, 150, 243, 0.1);
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left: 5px solid #ff9800;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 3px 10px rgba(255, 152, 0, 0.1);
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 5px solid #4caf50;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.1);
+        }
+        
+        .danger-box {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-left: 5px solid #f44336;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 3px 10px rgba(244, 67, 54, 0.1);
+        }
+        
+        .key-concept {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+            box-shadow: 0 8px 20px rgba(240, 147, 251, 0.3);
+        }
+        
+        .key-concept h5 {
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .comparison-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin: 25px 0;
+        }
+        
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            padding: 15px;
+            border: none;
+        }
+        
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+            border: 2px solid transparent;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+        
+        .metric-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .lab-section {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+            box-shadow: 0 10px 30px rgba(250, 112, 154, 0.3);
+        }
+        
+        .lab-card {
+            background: white;
+            color: #2C3E50;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .lab-card h4 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .timer-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 18px 30px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            font-weight: 700;
+            z-index: 1000;
+            border: 3px solid #667eea;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .progress-tracker {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            z-index: 1000;
+            border: 4px solid #667eea;
+            color: #667eea;
+        }
+        
+        .btn-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+            color: white;
+        }
+        
+        .checklist-item {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .checklist-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 6px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 5px;
+        }
+        
+        footer {
+            background: #2C3E50;
+            color: white;
+            padding: 40px 0;
+            margin-top: 80px;
+        }
+        
+        .architecture-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border: 2px dashed #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                top: 0;
+                margin-bottom: 30px;
+            }
+            
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            
+            .timer-badge {
+                position: relative;
+                margin: 10px auto;
+                display: block;
+                width: fit-content;
+            }
+            
+            .progress-tracker {
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+                font-size: 1rem;
+            }
+        }
+        
+        .tooltip-text {
+            cursor: help;
+            border-bottom: 2px dotted #667eea;
+            position: relative;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Timer Badge -->
+    <div class="timer-badge">
+        <i class="bi bi-stopwatch"></i> 
+        <span id="courseTimer">75:00</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="text-center">
+                <h1 class="mb-4">
+                    <i class="bi bi-speedometer2"></i> InfluxDB Performance Mastery
+                </h1>
+                <h3 class="mb-4">Performance Tuning and Scaling</h3>
+                <p class="lead mb-4">Advanced 75-Minute Professional Course</p>
+                
+                <div class="mt-4">
+                    <span class="course-badge">
+                        <i class="bi bi-clock-fill"></i> 75 Minutes
+                    </span>
+                    <span class="course-badge">
+                        <i class="bi bi-award-fill"></i> Advanced Level
+                    </span>
+                    <span class="course-badge">
+                        <i class="bi bi-lightning-fill"></i> 4 Labs Included
+                    </span>
+                    <span class="course-badge">
+                        <i class="bi bi-diagram-3-fill"></i> Production Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar">
+                    <div class="nav-card">
+                        <h5 class="mb-3 fw-bold"><i class="bi bi-list-ul"></i> Course Navigation</h5>
+                        <nav class="nav flex-column">
+                            <a class="nav-link active" href="#overview">
+                                <i class="bi bi-info-circle me-2"></i>Overview
+                            </a>
+                            <a class="nav-link" href="#module1">
+                                <i class="bi bi-layers me-2"></i>Module 1: Indexing
+                            </a>
+                            <a class="nav-link" href="#module2">
+                                <i class="bi bi-distribute-horizontal me-2"></i>Module 2: Clustering
+                            </a>
+                            <a class="nav-link" href="#module3">
+                                <i class="bi bi-arrow-left-right me-2"></i>Module 3: Load Management
+                            </a>
+                            <a class="nav-link" href="#module4">
+                                <i class="bi bi-hdd me-2"></i>Module 4: Disk & Cache
+                            </a>
+                            <a class="nav-link" href="#module5">
+                                <i class="bi bi-wrench me-2"></i>Module 5: Pitfalls & Tips
+                            </a>
+                            <a class="nav-link" href="#labs">
+                                <i class="bi bi-laptop me-2"></i>Hands-On Labs
+                            </a>
+                            <a class="nav-link" href="#summary">
+                                <i class="bi bi-trophy me-2"></i>Summary
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <!-- Overview Section -->
+                <section id="overview" class="mb-5 fade-in">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-info-circle-fill"></i> Course Overview</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4 class="mb-4">Learning Objectives</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <i class="bi bi-graph-up metric-icon"></i>
+                                        <h5>Optimize Performance</h5>
+                                        <p class="mb-0">Through indexing and compression</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <i class="bi bi-hdd-stack metric-icon"></i>
+                                        <h5>Scale Horizontally</h5>
+                                        <p class="mb-0">With clustering and sharding</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <i class="bi bi-speedometer metric-icon"></i>
+                                        <h5>Manage Load</h5>
+                                        <p class="mb-0">Handle high write and query traffic</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <i class="bi bi-cpu metric-icon"></i>
+                                        <h5>Tune Systems</h5>
+                                        <p class="mb-0">Optimize disk, memory, and cache</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="warning-box mt-4">
+                                <h5><i class="bi bi-exclamation-triangle-fill"></i> Prerequisites</h5>
+                                <p class="mb-0"><strong>Advanced Level:</strong> Requires strong understanding of InfluxDB fundamentals, retention policies, and continuous queries</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 1: Indexing and Compression -->
+                <section id="module1" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-layers-fill"></i> Module 1: Indexing & Compression (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>InfluxDB Storage Architecture</h4>
+                            
+                            <div class="architecture-diagram">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-diagram-3"></i> Data Flow</h6>
+                                <pre class="mb-0" style="background: white; color: #2C3E50; border-radius: 8px; padding: 20px;">Write → WAL → In-Memory Cache → TSM File (compressed)
+                    ↓
+                  Index (Tags)</pre>
+                            </div>
+
+                            <div class="key-concept mt-4">
+                                <h5><i class="bi bi-lightbulb-fill"></i> Critical Decision: Tags vs Fields</h5>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <h6>✅ Use TAGS for:</h6>
+                                        <ul>
+                                            <li>Low cardinality (&lt; 100K values)</li>
+                                            <li>Filtering dimensions</li>
+                                            <li>Metadata (server, region)</li>
+                                            <li>Grouping data</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>✅ Use FIELDS for:</h6>
+                                        <ul>
+                                            <li>High cardinality data</li>
+                                            <li>Actual metric values</li>
+                                            <li>Frequently changing data</li>
+                                            <li>Numeric measurements</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Schema Design Examples</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="danger-box">
+                                        <h6><i class="bi bi-x-circle-fill"></i> BAD Design</h6>
+                                        <div class="code-block">
+                                            <pre><code class="language-influxql">INSERT api_request,
+  user_id=user_12345678,
+  endpoint=/api/data 
+  response_time=125
+
+-- Problem: High cardinality!
+-- Millions of unique user_ids</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle-fill"></i> GOOD Design</h6>
+                                        <div class="code-block">
+                                            <pre><code class="language-influxql">INSERT api_request,
+  user_bucket=bucket_123,
+  endpoint=/api/data 
+  response_time=125,
+  user_id="user_12345678"
+
+-- Solution: Bucketing!
+-- Reduced to 1000 buckets</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Tag Cardinality Guidelines</h4>
+                            <div class="comparison-table">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Level</th>
+                                            <th>Series Count</th>
+                                            <th>Impact</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="background: #e8f5e9;">
+                                            <td><strong>Low</strong></td>
+                                            <td>&lt; 100K</td>
+                                            <td>✅ Optimal</td>
+                                            <td>No action needed</td>
+                                        </tr>
+                                        <tr style="background: #fff9c4;">
+                                            <td><strong>Medium</strong></td>
+                                            <td>100K - 1M</td>
+                                            <td>⚠️ Acceptable</td>
+                                            <td>Monitor closely</td>
+                                        </tr>
+                                        <tr style="background: #ffe0b2;">
+                                            <td><strong>High</strong></td>
+                                            <td>1M - 10M</td>
+                                            <td>⚠️ Degradation</td>
+                                            <td>Redesign schema</td>
+                                        </tr>
+                                        <tr style="background: #ffcdd2;">
+                                            <td><strong>Very High</strong></td>
+                                            <td>&gt; 10M</td>
+                                            <td>❌ Severe issues</td>
+                                            <td>Immediate action!</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 class="mt-5">Checking Cardinality</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language"><i class="bi bi-terminal-fill"></i> InfluxQL Commands</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-sql">-- Show series cardinality
+SHOW SERIES CARDINALITY
+
+-- Show measurement cardinality
+SHOW MEASUREMENT CARDINALITY
+
+-- Show tag key cardinality
+SHOW TAG KEY CARDINALITY
+
+-- Show tag values for specific key
+SHOW TAG VALUES CARDINALITY WITH KEY = "host"</code></pre>
+                            </div>
+
+                            <h4 class="mt-5">Compression Techniques</h4>
+                            <div class="info-box">
+                                <h6><i class="bi bi-info-circle-fill"></i> InfluxDB Compression Algorithms</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Timestamp:</strong> Delta-of-Delta encoding (~10:1 ratio)</li>
+                                    <li><strong>Integer:</strong> Run-Length + Delta (5-20:1 ratio)</li>
+                                    <li><strong>Float:</strong> Gorilla algorithm (10-30:1 ratio)</li>
+                                    <li><strong>String:</strong> Snappy compression (2-5:1 ratio)</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-check-circle-fill"></i> Compression Best Practices</h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="checklist-item">
+                                            <strong>Write in Batches</strong>
+                                            <p class="mb-0 small">1000-10000 points per batch</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="checklist-item">
+                                            <strong>Consistent Intervals</strong>
+                                            <p class="mb-0 small">Regular timestamps (1s, 10s, 60s)</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="checklist-item">
+                                            <strong>Order by Time</strong>
+                                            <p class="mb-0 small">Chronological order is best</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 2: Clustering and Sharding -->
+                <section id="module2" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-diagram-3-fill"></i> Module 2: Clustering & Sharding (20 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>InfluxDB Cluster Architecture</h4>
+                            
+                            <div class="architecture-diagram">
+                                <pre class="mb-0" style="background: white; color: #2C3E50; padding: 20px; border-radius: 8px;">                    ┌─────────────────┐
+                    │  Load Balancer  │
+                    └────────┬────────┘
+                             │
+            ┌────────────────┼────────────────┐
+            │                │                │
+      ┌─────▼─────┐    ┌────▼────┐    ┌─────▼─────┐
+      │  Data     │    │  Data   │    │  Data     │
+      │  Node 1   │    │  Node 2 │    │  Node 3   │
+      └───────────┘    └─────────┘    └───────────┘
+            │                │                │
+            └────────────────┴────────────────┘
+                             │
+                    ┌────────▼────────┐
+                    │   Meta Nodes    │
+                    │   (Consensus)   │
+                    └─────────────────┘</pre>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="info-box">
+                                        <h6><i class="bi bi-server"></i> Meta Nodes</h6>
+                                        <ul class="mb-0">
+                                            <li>Store cluster metadata</li>
+                                            <li>Manage membership</li>
+                                            <li>Coordinate data placement</li>
+                                            <li>Recommend: 3 nodes for HA</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-box">
+                                        <h6><i class="bi bi-hdd-stack"></i> Data Nodes</h6>
+                                        <ul class="mb-0">
+                                            <li>Store time-series data</li>
+                                            <li>Serve queries</li>
+                                            <li>Handle writes</li>
+                                            <li>Scale horizontally</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Shard Duration Guidelines</h4>
+                            <div class="comparison-table">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Retention Period</th>
+                                            <th>Recommended Shard Duration</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>&lt; 2 days</td>
+                                            <td><span class="tag">1 hour</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2 days - 6 months</td>
+                                            <td><span class="tag">1 day</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>6 months - 2 years</td>
+                                            <td><span class="tag">7 days</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>&gt; 2 years</td>
+                                            <td><span class="tag">30 days</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 class="mt-5">Replication Configuration</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language"><i class="bi bi-code-slash"></i> Replication Examples</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-sql">-- No replication (development)
+CREATE RETENTION POLICY "no_replication"
+ON "metrics" DURATION 30d REPLICATION 1
+
+-- With replication (production)
+CREATE RETENTION POLICY "with_replication"
+ON "metrics" DURATION 30d REPLICATION 2
+
+-- High availability (mission-critical)
+CREATE RETENTION POLICY "high_availability"
+ON "metrics" DURATION 30d REPLICATION 3</code></pre>
+                            </div>
+
+                            <h4 class="mt-5">Scaling Strategies</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="metric-card">
+                                        <i class="bi bi-arrow-right-circle metric-icon"></i>
+                                        <h5>Horizontal Scaling</h5>
+                                        <p class="small">Add more nodes for throughput</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="metric-card">
+                                        <i class="bi bi-arrow-up-circle metric-icon"></i>
+                                        <h5>Vertical Scaling</h5>
+                                        <p class="small">Upgrade hardware resources</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="metric-card">
+                                        <i class="bi bi-diagram-2 metric-icon"></i>
+                                        <h5>Database Separation</h5>
+                                        <p class="small">Multiple specialized clusters</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-lightbulb-fill"></i> When to Scale</h6>
+                                <ul class="mb-0">
+                                    <li>CPU consistently &gt; 80%</li>
+                                    <li>Memory usage &gt; 80%</li>
+                                    <li>Disk I/O saturated</li>
+                                    <li>Query latency increasing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 3: Load Management -->
+                <section id="module3" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-speedometer2"></i> Module 3: Load Management (20 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Write Performance Optimization</h4>
+                            
+                            <div class="key-concept">
+                                <h5><i class="bi bi-lightning-fill"></i> Optimal Batch Sizes</h5>
+                                <div class="comparison-table mt-3">
+                                    <table class="table mb-0 text-white">
+                                        <thead>
+                                            <tr>
+                                                <th>Scenario</th>
+                                                <th>Points/Batch</th>
+                                                <th>Frequency</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-white">
+                                            <tr>
+                                                <td>High throughput</td>
+                                                <td>5,000 - 10,000</td>
+                                                <td>Every 1-10s</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Medium throughput</td>
+                                                <td>1,000 - 5,000</td>
+                                                <td>Every 10-60s</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Low throughput</td>
+                                                <td>100 - 1,000</td>
+                                                <td>Every 60s+</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Python Batch Writer Example</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language"><i class="bi bi-file-code"></i> Python</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-python">from influxdb_client import InfluxDBClient, Point
+
+client = InfluxDBClient(
+    url="http://localhost:8086",
+    token="my-token",
+    org="my-org"
+)
+
+# Batch write - MUCH faster!
+points = []
+for i in range(5000):
+    point = Point("measurement") \\
+        .tag("host", "server01") \\
+        .field("value", i) \\
+        .time(datetime.utcnow())
+    points.append(point)
+
+# Write entire batch at once
+write_api.write(bucket="my-bucket", record=points)</code></pre>
+                            </div>
+
+                            <h4 class="mt-5">Query Optimization Techniques</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="danger-box">
+                                        <h6><i class="bi bi-x-circle"></i> BAD: No time filter</h6>
+                                        <div class="code-block">
+                                            <pre><code class="language-sql">SELECT * FROM cpu 
+WHERE host = 'server01'
+
+-- Scans ALL data!</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-circle"></i> GOOD: Time range</h6>
+                                        <div class="code-block">
+                                            <pre><code class="language-sql">SELECT * FROM cpu 
+WHERE host = 'server01'
+  AND time > now() - 1h
+LIMIT 1000
+
+-- Fast & efficient!</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box mt-4">
+                                <h6><i class="bi bi-exclamation-triangle-fill"></i> Performance vs Durability</h6>
+                                <div class="row mt-3">
+                                    <div class="col-md-4">
+                                        <strong>Maximum Safety</strong>
+                                        <pre class="mt-2" style="background: white; padding: 10px; border-radius: 5px;">wal-fsync-delay = "0s"</pre>
+                                        <p class="small mb-0">Slowest, no data loss</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Balanced</strong>
+                                        <pre class="mt-2" style="background: white; padding: 10px; border-radius: 5px;">wal-fsync-delay = "100ms"</pre>
+                                        <p class="small mb-0">Good balance</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Maximum Speed</strong>
+                                        <pre class="mt-2" style="background: white; padding: 10px; border-radius: 5px;">wal-fsync-delay = "1s"</pre>
+                                        <p class="small mb-0">Fastest, some risk</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 4: Disk I/O and Caching -->
+                <section id="module4" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-hdd-fill"></i> Module 4: Disk I/O & Caching (15 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Disk Performance Tiers</h4>
+                            <div class="comparison-table">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Storage Type</th>
+                                            <th>Read IOPS</th>
+                                            <th>Write IOPS</th>
+                                            <th>Use Case</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="background: #e8f5e9;">
+                                            <td><strong>NVME SSD</strong></td>
+                                            <td>100K+</td>
+                                            <td>50K+</td>
+                                            <td>Hot data, WAL</td>
+                                        </tr>
+                                        <tr style="background: #fff9c4;">
+                                            <td><strong>SATA SSD</strong></td>
+                                            <td>10K+</td>
+                                            <td>5K+</td>
+                                            <td>Warm data</td>
+                                        </tr>
+                                        <tr style="background: #ffcdd2;">
+                                            <td><strong>HDD</strong></td>
+                                            <td>100-200</td>
+                                            <td>100-200</td>
+                                            <td>Cold/archive</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h6><i class="bi bi-hdd-stack-fill"></i> Recommended Storage Layout</h6>
+                                <pre class="mb-0" style="background: white; color: #2C3E50; padding: 15px; border-radius: 8px;">Optimal Setup:
+├── NVME SSD (500GB): WAL + Cache + Hot data (7 days)
+├── SATA SSD (2TB): Warm data (30-90 days)
+└── HDD (10TB): Cold data (1+ year)</pre>
+                            </div>
+
+                            <h4 class="mt-5">Memory Architecture</h4>
+                            <div class="architecture-diagram">
+                                <pre class="mb-0" style="background: white; color: #2C3E50; padding: 20px; border-radius: 8px;">Total System Memory (32GB example)
+├── OS + Services: 4GB
+├── InfluxDB Process: 28GB
+    ├── Cache: 8GB (data cache)
+    ├── TSI: 4GB (index cache)
+    ├── Query Engine: 8GB (processing)
+    └── Buffers: 8GB (connections, etc.)</pre>
+                            </div>
+
+                            <h4 class="mt-5">Performance Monitoring</h4>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <i class="bi bi-pencil-square metric-icon"></i>
+                                        <h6>Write Metrics</h6>
+                                        <p class="small mb-0">SHOW STATS FOR 'write'</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <i class="bi bi-search metric-icon"></i>
+                                        <h6>Query Metrics</h6>
+                                        <p class="small mb-0">SHOW STATS FOR 'queryExecutor'</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <i class="bi bi-folder metric-icon"></i>
+                                        <h6>Cache Metrics</h6>
+                                        <p class="small mb-0">SHOW STATS FOR 'cache'</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <i class="bi bi-layers metric-icon"></i>
+                                        <h6>Shard Metrics</h6>
+                                        <p class="small mb-0">SHOW STATS FOR 'shard'</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h6><i class="bi bi-graph-up"></i> Key Metrics to Monitor</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul>
+                                            <li>Write throughput (points/sec)</li>
+                                            <li>Query rate (queries/sec)</li>
+                                            <li>Memory usage (%)</li>
+                                            <li>Disk I/O (IOPS)</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul>
+                                            <li>Cache hit rate (%)</li>
+                                            <li>Shard count</li>
+                                            <li>Series cardinality</li>
+                                            <li>Query duration (p95, p99)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Module 5: Pitfalls and Tips -->
+                <section id="module5" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-exclamation-octagon"></i> Module 5: Pitfalls & Tips (5 min)</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Top 10 Performance Pitfalls</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="danger-box">
+                                        <h6>❌ 1. High Tag Cardinality</h6>
+                                        <p><strong>Problem:</strong> Using unique IDs as tags</p>
+                                        <p><strong>Solution:</strong> Use fields or hash into buckets</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 2. Unbounded Queries</h6>
+                                        <p><strong>Problem:</strong> No time limits</p>
+                                        <p><strong>Solution:</strong> Always add time range + LIMIT</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 3. Too Many Measurements</h6>
+                                        <p><strong>Problem:</strong> One per metric type</p>
+                                        <p><strong>Solution:</strong> Group related metrics</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 4. Small Write Batches</h6>
+                                        <p><strong>Problem:</strong> 1 point per request</p>
+                                        <p><strong>Solution:</strong> Batch 1000-10000 points</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 5. Irregular Intervals</h6>
+                                        <p><strong>Problem:</strong> Random timestamps</p>
+                                        <p><strong>Solution:</strong> Consistent intervals (1s, 10s)</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="danger-box">
+                                        <h6>❌ 6. No Retention Policies</h6>
+                                        <p><strong>Problem:</strong> Keep data forever</p>
+                                        <p><strong>Solution:</strong> Implement tiered retention</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 7. Complex Raw Queries</h6>
+                                        <p><strong>Problem:</strong> On-the-fly aggregation</p>
+                                        <p><strong>Solution:</strong> Use continuous queries</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 8. Insufficient Hardware</h6>
+                                        <p><strong>Problem:</strong> Underpowered systems</p>
+                                        <p><strong>Solution:</strong> 32GB+ RAM minimum</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 9. No Monitoring</h6>
+                                        <p><strong>Problem:</strong> Flying blind</p>
+                                        <p><strong>Solution:</strong> Comprehensive monitoring</p>
+                                    </div>
+                                    
+                                    <div class="danger-box">
+                                        <h6>❌ 10. Ignoring WAL</h6>
+                                        <p><strong>Problem:</strong> WAL on slow disk</p>
+                                        <p><strong>Solution:</strong> Put WAL on NVME SSD</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Quick Tuning Checklist</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-square"></i> Schema Design</h6>
+                                        <ul class="mb-0">
+                                            <li>☐ Tag cardinality &lt; 100K</li>
+                                            <li>☐ Total series &lt; 1M</li>
+                                            <li>☐ Tags for filtering only</li>
+                                            <li>☐ Fields for metrics</li>
+                                            <li>☐ Logical measurement grouping</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-square"></i> Write Performance</h6>
+                                        <ul class="mb-0">
+                                            <li>☐ Batch: 1000-10000 points</li>
+                                            <li>☐ Consistent time intervals</li>
+                                            <li>☐ WAL on fast disk</li>
+                                            <li>☐ wal-fsync-delay tuned</li>
+                                            <li>☐ Connection pooling</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-square"></i> Query Performance</h6>
+                                        <ul class="mb-0">
+                                            <li>☐ Always include time range</li>
+                                            <li>☐ Filter on tags</li>
+                                            <li>☐ Use LIMIT</li>
+                                            <li>☐ Leverage CQs</li>
+                                            <li>☐ TSI enabled</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="success-box">
+                                        <h6><i class="bi bi-check-square"></i> Infrastructure</h6>
+                                        <ul class="mb-0">
+                                            <li>☐ 32GB+ RAM</li>
+                                            <li>☐ NVME SSD for WAL</li>
+                                            <li>☐ SATA SSD for data</li>
+                                            <li>☐ Dedicated server</li>
+                                            <li>☐ Kernel tuning applied</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Labs Section -->
+                <section id="labs" class="mb-5">
+                    <div class="lab-section">
+                        <h2 class="text-white mb-4">
+                            <i class="bi bi-laptop"></i> Hands-On Lab Exercises
+                        </h2>
+                        
+                        <div class="lab-card">
+                            <h4><i class="bi bi-1-circle-fill text-primary"></i> Lab 1: Schema Optimization (15 min)</h4>
+                            <p><strong>Objective:</strong> Fix high-cardinality schema</p>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-danger">❌ Current (BAD)</h6>
+                                    <div class="code-block">
+                                        <pre><code class="language-sql">INSERT api_call,
+  user_id=user_12345,
+  endpoint=/api/users/12345
+  response_time=125
+
+-- 10M users × 1M endpoints
+-- = 10 TRILLION series!</code></pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-success">✅ Optimized</h6>
+                                    <div class="code-block">
+                                        <pre><code class="language-sql">INSERT api_call,
+  user_bucket=bucket_045,
+  endpoint_pattern=/api/users/:id
+  response_time=125
+
+-- 1000 buckets × 100 patterns
+-- = 100K series!</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(1)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <h4><i class="bi bi-2-circle-fill text-primary"></i> Lab 2: Write Performance (15 min)</h4>
+                            <p><strong>Objective:</strong> Optimize write throughput with batching</p>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-danger">❌ Slow (100 pts/sec)</h6>
+                                    <div class="code-block">
+                                        <pre><code class="language-python">for i in range(10000):
+    client.write(
+        bucket, org,
+        Point("test").field("value", i)
+    )</code></pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-success">✅ Fast (10K pts/sec)</h6>
+                                    <div class="code-block">
+                                        <pre><code class="language-python">points = []
+for i in range(10000):
+    points.append(
+        Point("test").field("value", i)
+    )
+client.write(bucket, org, points)</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(2)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <h4><i class="bi bi-3-circle-fill text-primary"></i> Lab 3: Query Optimization (15 min)</h4>
+                            <p><strong>Objective:</strong> Speed up slow query using CQ</p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language">Create CQ for pre-aggregation</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-sql">-- Create CQ (runs automatically)
+CREATE CONTINUOUS QUERY "cq_cpu_1h"
+ON "metrics"
+BEGIN
+  SELECT MEAN(value) AS mean_value
+  INTO "cpu_1h"
+  FROM "cpu"
+  GROUP BY time(1h), host
+END
+
+-- Fast query on pre-aggregated data
+SELECT MEAN(mean_value) FROM cpu_1h
+WHERE time > now() - 30d
+GROUP BY time(1d), host
+-- 45s → 0.5s (90x faster!)</code></pre>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(3)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+
+                        <div class="lab-card">
+                            <h4><i class="bi bi-4-circle-fill text-primary"></i> Lab 4: Monitoring Setup (15 min)</h4>
+                            <p><strong>Objective:</strong> Implement comprehensive monitoring with Telegraf</p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-language">telegraf.conf</span>
+                                    <button class="copy-btn" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre><code class="language-toml">[[inputs.influxdb]]
+  urls = ["http://localhost:8086/debug/vars"]
+
+[[inputs.cpu]]
+  percpu = true
+
+[[inputs.mem]]
+
+[[inputs.disk]]
+  mount_points = ["/var/lib/influxdb"]
+
+[[outputs.influxdb_v2]]
+  urls = ["http://localhost:8086"]
+  token = "$INFLUX_TOKEN"
+  organization = "my-org"
+  bucket = "monitoring"</code></pre>
+                            </div>
+                            <button class="btn btn-success mt-3" onclick="markLabComplete(4)">
+                                <i class="bi bi-check-circle"></i> Mark Complete
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Summary -->
+                <section id="summary" class="mb-5">
+                    <div class="card module-card">
+                        <div class="module-header">
+                            <h2><i class="bi bi-trophy-fill"></i> Course Summary</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h4>Key Takeaways</h4>
+                            
+                            <div class="key-concept">
+                                <h5><i class="bi bi-star-fill"></i> Critical Success Factors</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px;">
+                                            <h6>1. Schema Design is Paramount</h6>
+                                            <p class="mb-0">Low cardinality (&lt;100K), tags for filtering, fields for metrics</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px;">
+                                            <h6>2. Batching is Essential</h6>
+                                            <p class="mb-0">Write 1000-10000 points per batch for 100x improvement</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px;">
+                                            <h6>3. Hardware Matters</h6>
+                                            <p class="mb-0">32GB+ RAM, NVME SSD for WAL, proper I/O planning</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px;">
+                                            <h6>4. Monitor Everything</h6>
+                                            <p class="mb-0">Can't optimize what you don't measure</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mt-5">Hardware Recommendations</h4>
+                            <div class="comparison-table">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Setup</th>
+                                            <th>CPU</th>
+                                            <th>RAM</th>
+                                            <th>Storage</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Minimum</strong></td>
+                                            <td>8 cores</td>
+                                            <td>32GB</td>
+                                            <td>500GB NVME SSD</td>
+                                        </tr>
+                                        <tr style="background: #e8f5e9;">
+                                            <td><strong>Recommended</strong></td>
+                                            <td>16 cores</td>
+                                            <td>64GB</td>
+                                            <td>1TB NVME + 4TB SATA SSD</td>
+                                        </tr>
+                                        <tr style="background: #fff9c4;">
+                                            <td><strong>Enterprise</strong></td>
+                                            <td>32+ cores</td>
+                                            <td>128GB+</td>
+                                            <td>Multi-node cluster</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="text-center mt-5">
+                                <button class="btn btn-custom btn-lg" onclick="completeCourse()">
+                                    <i class="bi bi-award-fill"></i> Complete Course & Get Certificate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <h5 class="mb-3">InfluxDB: Performance Tuning and Scaling</h5>
+            <p>Advanced 75-Minute Professional Course</p>
+            <p class="text-muted mt-3">Built with ❤️ for InfluxDB performance engineers</p>
+        </div>
+    </footer>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <span id="progressText">0%</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Copy Code Function
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Timer
+        let minutes = 75, seconds = 0;
+        setInterval(() => {
+            if (seconds === 0) {
+                if (minutes === 0) return;
+                minutes--;
+                seconds = 59;
+            } else {
+                seconds--;
+            }
+            document.getElementById('courseTimer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+
+        // Progress Tracking
+        let progress = 0;
+        const sections = document.querySelectorAll('section[id]');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            document.querySelectorAll('.nav-card .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+            
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            document.getElementById('progressText').textContent = Math.round(scrolled) + '%';
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Lab completion
+        let completedLabs = 0;
+        function markLabComplete(labNumber) {
+            event.target.classList.remove('btn-success');
+            event.target.classList.add('btn-secondary');
+            event.target.innerHTML = '<i class="bi bi-check-circle-fill"></i> Completed';
+            event.target.disabled = true;
+            completedLabs++;
+            
+            if (completedLabs === 4) {
+                setTimeout(() => {
+                    alert('🎉 Congratulations! All labs completed!');
+                }, 500);
+            }
+        }
+
+        // Course completion
+        function completeCourse() {
+            const name = prompt('Enter your name for the certificate:');
+            if (name) {
+                alert(`🎉 Congratulations ${name}!
+
+You have successfully completed:
+InfluxDB Performance Tuning and Scaling
+
+Skills Acquired:
+✓ Indexing & Compression Optimization
+✓ Clustering & Sharding Strategies
+✓ Write & Query Load Management
+✓ Disk I/O & Caching Tuning
+✓ Performance Monitoring
+✓ Production Best Practices
+
+You're now ready to optimize InfluxDB at scale!`);
+            }
+        }
+
+        // Fade-in animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        });
+
+        document.querySelectorAll('.module-card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

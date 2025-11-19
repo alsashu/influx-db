@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 9: API Integrations, Tools, and Ecosystem - InfluxDB Training</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Prism.js for syntax highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --influx-blue: #9394FF;
+      --influx-dark: #1a1d26;
+      --influx-light: #2d3141;
+      --success-green: #32CD32;
+      --warning-orange: #FF8C00;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+
+    .main-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .header-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header-section h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .header-section .badge {
+      font-size: 1rem;
+      padding: 10px 20px;
+      margin: 5px;
+    }
+
+    .nav-pills .nav-link {
+      color: #667eea;
+      border-radius: 10px;
+      margin: 5px 0;
+      transition: all 0.3s;
+    }
+
+    .nav-pills .nav-link:hover {
+      background-color: #f0f0f0;
+      transform: translateX(5px);
+    }
+
+    .nav-pills .nav-link.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .content-section {
+      padding: 30px;
+    }
+
+    .section-title {
+      color: #667eea;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+      margin-bottom: 25px;
+      font-weight: bold;
+    }
+
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      transition: transform 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: bold;
+      border-radius: 10px 10px 0 0 !important;
+    }
+
+    .code-block {
+      background: #2d3748;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+      position: relative;
+    }
+
+    .code-block .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--influx-blue);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 15px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+    }
+
+    .code-block .copy-btn:hover {
+      background: #7678dd;
+    }
+
+    .api-endpoint {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+
+    .api-method {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 0.9rem;
+    }
+
+    .method-get {
+      background: #28a745;
+      color: white;
+    }
+
+    .method-post {
+      background: #007bff;
+      color: white;
+    }
+
+    .method-delete {
+      background: #dc3545;
+      color: white;
+    }
+
+    .method-put {
+      background: #ffc107;
+      color: black;
+    }
+
+    .feature-box {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 15px 0;
+      border-left: 4px solid #667eea;
+    }
+
+    .feature-box i {
+      color: #667eea;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .best-practice {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+
+    .warning-box {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+
+    .architecture-diagram {
+      background: #f8f9fa;
+      border: 2px dashed #667eea;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .lab-section {
+      background: linear-gradient(135deg, #ff9a9e15 0%, #fad0c415 100%);
+      border-radius: 10px;
+      padding: 25px;
+      margin: 20px 0;
+      border: 2px solid #ff9a9e;
+    }
+
+    .objectives-list {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+
+    .objectives-list li {
+      margin: 10px 0;
+      padding-left: 10px;
+    }
+
+    .objectives-list li:before {
+      content: "✓ ";
+      color: #28a745;
+      font-weight: bold;
+      margin-right: 5px;
+    }
+
+    .progress-tracker {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    .btn-custom {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 25px;
+      transition: all 0.3s;
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
+
+    .integration-icon {
+      font-size: 3rem;
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .header-section h1 {
+        font-size: 1.8rem;
+      }
+
+      .progress-tracker {
+        display: none;
+      }
+    }
+
+    .tab-content {
+      animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .language-tabs .nav-link {
+      background: #f8f9fa;
+      color: #667eea;
+      margin: 0 5px;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .language-tabs .nav-link.active {
+      background: #667eea;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="main-container">
+      <!-- Header -->
+      <div class="header-section">
+        <h1><i class="fas fa-plug"></i> Module 9: API Integrations, Tools, and Ecosystem</h1>
+        <p class="lead">Master InfluxDB APIs, Client Libraries, and Integration Patterns</p>
+        <div>
+          <span class="badge bg-light text-dark"><i class="far fa-clock"></i> 45 Minutes</span>
+          <span class="badge bg-light text-dark"><i class="fas fa-signal"></i> Intermediate to Advanced</span>
+          <span class="badge bg-light text-dark"><i class="fas fa-code"></i> Hands-On Labs</span>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="row g-0">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3 bg-light">
+          <div class="p-3">
+            <h5 class="text-center mb-3">Navigation</h5>
+            <nav class="nav nav-pills flex-column" id="module-nav">
+              <a class="nav-link active" href="#intro"><i class="fas fa-home"></i> Introduction</a>
+              <a class="nav-link" href="#http-api"><i class="fas fa-server"></i> HTTP API</a>
+              <a class="nav-link" href="#clients"><i class="fas fa-code-branch"></i> Client Libraries</a>
+              <a class="nav-link" href="#notebooks"><i class="fas fa-book"></i> Notebooks</a>
+              <a class="nav-link" href="#integrations"><i class="fas fa-plug"></i> Integrations</a>
+              <a class="nav-link" href="#automation"><i class="fas fa-robot"></i> Automation</a>
+              <a class="nav-link" href="#best-practices"><i class="fas fa-star"></i> Best Practices</a>
+              <a class="nav-link" href="#architecture"><i class="fas fa-sitemap"></i> Architecture</a>
+              <a class="nav-link" href="#labs"><i class="fas fa-flask"></i> Hands-On Labs</a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="col-md-9">
+          <div class="content-section">
+            <!-- Introduction -->
+            <section id="intro">
+              <h2 class="section-title">Introduction</h2>
+              <p class="lead">Welcome to the world of InfluxDB integrations! This module explores the rich ecosystem of
+                APIs, tools, and integration patterns that make InfluxDB a powerful platform for time-series data
+                management.</p>
+
+              <div class="objectives-list">
+                <h5><i class="fas fa-bullseye"></i> Learning Objectives</h5>
+                <ul class="list-unstyled">
+                  <li>Master the InfluxDB HTTP API for programmatic access</li>
+                  <li>Implement client libraries in C#, Python, and Node.js</li>
+                  <li>Utilize InfluxDB notebooks for data analytics</li>
+                  <li>Design integration patterns for DevOps, IoT, and cloud systems</li>
+                  <li>Automate workflows using scripts and APIs</li>
+                  <li>Apply best practices and proven architecture patterns</li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- HTTP API -->
+            <section id="http-api" class="mt-5">
+              <h2 class="section-title">InfluxDB HTTP API</h2>
+
+              <div class="feature-box">
+                <i class="fas fa-network-wired"></i>
+                <h5>RESTful API Architecture</h5>
+                <p>InfluxDB 2.x provides a comprehensive RESTful HTTP API for all operations, enabling seamless
+                  integration with any programming language or platform.</p>
+                <p><strong>Base URL:</strong> <code>http(s)://[host]:[port]/api/v2/</code></p>
+              </div>
+
+              <h4 class="mt-4"><i class="fas fa-key"></i> Authentication</h4>
+              <p>All API requests require authentication using tokens:</p>
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-bash">Authorization: Token YOUR_API_TOKEN</code></pre>
+              </div>
+
+              <h4 class="mt-4"><i class="fas fa-list"></i> Core API Endpoints</h4>
+
+              <div class="api-endpoint">
+                <span class="api-method method-get">GET</span>
+                <code>/health</code>
+                <p class="mt-2 mb-0">Check InfluxDB server health status</p>
+              </div>
+
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-bash">curl -X GET "http://localhost:8086/health"</code></pre>
+              </div>
+
+              <div class="api-endpoint">
+                <span class="api-method method-post">POST</span>
+                <code>/api/v2/write</code>
+                <p class="mt-2 mb-0">Write data to InfluxDB using line protocol</p>
+              </div>
+
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-bash">curl -X POST "http://localhost:8086/api/v2/write?org=myorg&bucket=mybucket&precision=s" \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -H "Content-Type: text/plain" \
+  --data-raw "temperature,location=room1 value=23.5 1635724800"</code></pre>
+              </div>
+
+              <div class="api-endpoint">
+                <span class="api-method method-post">POST</span>
+                <code>/api/v2/query</code>
+                <p class="mt-2 mb-0">Query data using Flux language</p>
+              </div>
+
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-bash">curl -X POST "http://localhost:8086/api/v2/query?org=myorg" \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -H "Content-Type: application/vnd.flux" \
+  --data 'from(bucket:"mybucket")
+    |> range(start: -1h)
+    |> filter(fn: (r) => r._measurement == "temperature")'</code></pre>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <i class="fas fa-check-circle"></i> Success Response
+                    </div>
+                    <div class="card-body">
+                      <div class="code-block">
+                        <pre><code class="language-json">{
+  "code": "success",
+  "message": "Data written successfully"
+}</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <i class="fas fa-exclamation-triangle"></i> Error Response
+                    </div>
+                    <div class="card-body">
+                      <div class="code-block">
+                        <pre><code class="language-json">{
+  "code": "invalid",
+  "message": "unable to parse",
+  "line": 1
+}</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Client Libraries -->
+            <section id="clients" class="mt-5">
+              <h2 class="section-title">Client Libraries</h2>
+              <p class="lead">InfluxDB provides official client libraries for multiple programming languages, making
+                integration seamless and efficient.</p>
+
+              <!-- Language Tabs -->
+              <ul class="nav nav-tabs language-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="python-tab" data-bs-toggle="tab" data-bs-target="#python"
+                    type="button">
+                    <i class="fab fa-python"></i> Python
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="csharp-tab" data-bs-toggle="tab" data-bs-target="#csharp" type="button">
+                    <i class="fas fa-code"></i> C#
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="nodejs-tab" data-bs-toggle="tab" data-bs-target="#nodejs" type="button">
+                    <i class="fab fa-node-js"></i> Node.js
+                  </button>
+                </li>
+              </ul>
+
+              <div class="tab-content mt-3">
+                <!-- Python -->
+                <div class="tab-pane fade show active" id="python" role="tabpanel">
+                  <div class="card">
+                    <div class="card-header">
+                      <i class="fab fa-python"></i> Python Client Library
+                    </div>
+                    <div class="card-body">
+                      <h5>Installation</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-bash">pip install influxdb-client</code></pre>
+                      </div>
+
+                      <h5 class="mt-4">Basic Connection</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-python">from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+
+# Initialize client
+client = InfluxDBClient(
+    url="http://localhost:8086",
+    token="YOUR_TOKEN",
+    org="myorg"
+)
+
+# Verify connection
+health = client.health()
+print(f"InfluxDB Health: {health.status}")</code></pre>
+                      </div>
+
+                      <h5 class="mt-4">Writing Data</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-python"># Get write API
+write_api = client.write_api(write_options=SYNCHRONOUS)
+
+# Write using Point object
+point = Point("temperature") \
+    .tag("location", "room1") \
+    .tag("sensor_id", "sensor_001") \
+    .field("value", 23.5) \
+    .field("humidity", 45.2)
+
+write_api.write(bucket="mybucket", record=point)
+
+# Write batch data
+points = []
+for i in range(100):
+    point = Point("cpu_usage") \
+        .tag("host", f"server_{i%5}") \
+        .field("usage", 50 + i % 30)
+    points.append(point)
+
+write_api.write(bucket="mybucket", record=points)</code></pre>
+                      </div>
+
+                      <h5 class="mt-4">Querying Data</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-python"># Get query API
+query_api = client.query_api()
+
+# Execute Flux query
+query = '''
+from(bucket: "mybucket")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "temperature")
+  |> filter(fn: (r) => r._field == "value")
+'''
+
+result = query_api.query(query=query)
+
+# Process results
+for table in result:
+    for record in table.records:
+        print(f"Time: {record.get_time()}, "
+              f"Location: {record.values.get('location')}, "
+              f"Value: {record.get_value()}")</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- C# -->
+                <div class="tab-pane fade" id="csharp" role="tabpanel">
+                  <div class="card">
+                    <div class="card-header">
+                      <i class="fas fa-code"></i> C# Client Library
+                    </div>
+                    <div class="card-body">
+                      <h5>Installation</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-bash">dotnet add package InfluxDB.Client</code></pre>
+                      </div>
+
+                      <h5 class="mt-4">Basic Implementation</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-csharp">using InfluxDB.Client;
+using InfluxDB.Client.Api.Domain;
+using InfluxDB.Client.Writes;
+
+// Initialize client
+var client = new InfluxDBClient(
+    "http://localhost:8086",
+    "YOUR_TOKEN"
+);
+
+// Write data
+using (var writeApi = client.GetWriteApi())
+{
+    var point = PointData
+        .Measurement("temperature")
+        .Tag("location", "room1")
+        .Field("value", 23.5)
+        .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
+    
+    writeApi.WritePoint(point, "mybucket", "myorg");
+}
+
+// Query data
+var query = @"
+    from(bucket: ""mybucket"")
+        |> range(start: -1h)
+        |> filter(fn: (r) => r._measurement == ""temperature"")
+";
+
+var queryApi = client.GetQueryApi();
+var tables = await queryApi.QueryAsync(query, "myorg");
+
+foreach (var table in tables)
+{
+    foreach (var record in table.Records)
+    {
+        Console.WriteLine($"{record.GetTime()}: {record.GetValueByKey("_value")}");
+    }
+}</code></pre>
+                      </div>
+
+                      <h5 class="mt-4">POCO Model</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-csharp">using InfluxDB.Client.Core;
+
+[Measurement("temperature")]
+public class SensorReading
+{
+    [Column("location", IsTag = true)] 
+    public string Location { get; set; }
+    
+    [Column("value")] 
+    public double Value { get; set; }
+    
+    [Column(IsTimestamp = true)] 
+    public DateTime Time { get; set; }
+}</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Node.js -->
+                <div class="tab-pane fade" id="nodejs" role="tabpanel">
+                  <div class="card">
+                    <div class="card-header">
+                      <i class="fab fa-node-js"></i> Node.js Client Library
+                    </div>
+                    <div class="card-body">
+                      <h5>Installation</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-bash">npm install @influxdata/influxdb-client</code></pre>
+                      </div>
+
+                      <h5 class="mt-4">Basic Usage</h5>
+                      <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-javascript">const { InfluxDB, Point } = require('@influxdata/influxdb-client');
+
+// Initialize client
+const url = 'http://localhost:8086';
+const token = 'YOUR_TOKEN';
+const org = 'myorg';
+const bucket = 'mybucket';
+
+const client = new InfluxDB({ url, token });
+
+// Write data
+const writeApi = client.getWriteApi(org, bucket);
+writeApi.useDefaultTags({ environment: 'production' });
+
+const point = new Point('temperature')
+    .tag('location', 'room1')
+    .floatField('value', 23.5)
+    .timestamp(new Date());
+
+writeApi.writePoint(point);
+await writeApi.close();
+
+// Query data
+const queryApi = client.getQueryApi(org);
+
+const query = `
+    from(bucket: "${bucket}")
+        |> range(start: -1h)
+        |> filter(fn: (r) => r._measurement == "temperature")
+`;
+
+const data = [];
+await queryApi.queryRows(query, {
+    next(row, tableMeta) {
+        const o = tableMeta.toObject(row);
+        data.push(o);
+    },
+    error(error) {
+        console.error('Query error:', error);
+    },
+    complete() {
+        console.log('Query complete');
+        console.log(data);
+    }
+});</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Notebooks -->
+            <section id="notebooks" class="mt-5">
+              <h2 class="section-title">InfluxDB Notebooks</h2>
+
+              <div class="feature-box">
+                <i class="fas fa-book-open"></i>
+                <h5>Interactive Data Exploration</h5>
+                <p>InfluxDB notebooks provide an interactive environment for data exploration, analysis, and
+                  visualization directly within the InfluxDB UI.</p>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <i class="fas fa-star"></i> Key Features
+                    </div>
+                    <div class="card-body">
+                      <ul>
+                        <li>Interactive Data Exploration</li>
+                        <li>Visualization Building</li>
+                        <li>Data Transformation</li>
+                        <li>Collaborative Analysis</li>
+                        <li>Export to Dashboards</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <i class="fas fa-lightbulb"></i> Use Cases
+                    </div>
+                    <div class="card-body">
+                      <ul>
+                        <li>Ad-hoc data analysis</li>
+                        <li>Query development</li>
+                        <li>Data quality checks</li>
+                        <li>Trend analysis</li>
+                        <li>Statistical exploration</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h5 class="mt-4">Multi-Cell Workflow Example</h5>
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-flux">// Cell 1: Load data
+from(bucket: "system_metrics")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "cpu")
+
+// Cell 2: Calculate averages
+from(bucket: "system_metrics")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "cpu")
+  |> aggregateWindow(every: 1h, fn: mean)
+
+// Cell 3: Join multiple sources
+cpu_data = from(bucket: "system_metrics")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "cpu")
+
+memory_data = from(bucket: "system_metrics")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "memory")
+
+join(
+  tables: {cpu: cpu_data, mem: memory_data},
+  on: ["_time", "host"]
+)</code></pre>
+              </div>
+            </section>
+
+            <!-- Integrations -->
+            <section id="integrations" class="mt-5">
+              <h2 class="section-title">Integration Patterns</h2>
+
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="card text-center">
+                    <div class="card-body">
+                      <i class="fab fa-docker integration-icon"></i>
+                      <h5>DevOps</h5>
+                      <p>CI/CD pipelines, Docker, Kubernetes, Jenkins integration</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card text-center">
+                    <div class="card-body">
+                      <i class="fas fa-microchip integration-icon"></i>
+                      <h5>IoT</h5>
+                      <p>MQTT bridges, Arduino, ESP32, sensor networks</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card text-center">
+                    <div class="card-body">
+                      <i class="fas fa-cloud integration-icon"></i>
+                      <h5>Cloud</h5>
+                      <p>AWS Lambda, Azure Functions, GCP integration</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h5 class="mt-4">GitHub Actions Integration Example</h5>
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-yaml">name: InfluxDB Metrics
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  report-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send build metrics
+        run: |
+          curl -X POST "${{ secrets.INFLUX_URL }}/api/v2/write" \
+            -H "Authorization: Token ${{ secrets.INFLUX_TOKEN }}" \
+            --data-raw "build,repo=${{ github.repository }} duration=120"</code></pre>
+              </div>
+
+              <h5 class="mt-4">MQTT to InfluxDB Bridge</h5>
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-python">import paho.mqtt.client as mqtt
+from influxdb_client import InfluxDBClient, Point
+
+influx_client = InfluxDBClient(url="http://localhost:8086", 
+                                token="YOUR_TOKEN", org="myorg")
+write_api = influx_client.write_api()
+
+def on_message(client, userdata, msg):
+    payload = json.loads(msg.payload)
+    
+    point = Point("iot_sensor") \
+        .tag("device_id", payload["device_id"]) \
+        .field("temperature", float(payload["temperature"]))
+    
+    write_api.write(bucket="iot_data", record=point)
+
+mqtt_client = mqtt.Client()
+mqtt_client.on_message = on_message
+mqtt_client.connect("mqtt.example.com", 1883)
+mqtt_client.subscribe("sensors/#")
+mqtt_client.loop_forever()</code></pre>
+              </div>
+            </section>
+
+            <!-- Automation -->
+            <section id="automation" class="mt-5">
+              <h2 class="section-title">Automation and Orchestration</h2>
+
+              <div class="feature-box">
+                <i class="fas fa-robot"></i>
+                <h5>Automated Workflows</h5>
+                <p>Build sophisticated automation pipelines using Python scripts, scheduled tasks, and orchestration
+                  tools to streamline data collection and processing.</p>
+              </div>
+
+              <h5 class="mt-4">System Monitoring Script</h5>
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-python">import schedule
+import time
+from influxdb_client import InfluxDBClient, Point
+import psutil
+
+class SystemMonitor:
+    def __init__(self, url, token, org, bucket):
+        self.client = InfluxDBClient(url=url, token=token, org=org)
+        self.write_api = self.client.write_api()
+        self.bucket = bucket
+    
+    def collect_system_metrics(self):
+        # CPU metrics
+        cpu_point = Point("system") \
+            .tag("metric_type", "cpu") \
+            .field("usage_percent", psutil.cpu_percent(interval=1))
+        
+        # Memory metrics
+        mem = psutil.virtual_memory()
+        mem_point = Point("system") \
+            .tag("metric_type", "memory") \
+            .field("usage_percent", mem.percent)
+        
+        self.write_api.write(bucket=self.bucket, 
+                           record=[cpu_point, mem_point])
+    
+    def start_monitoring(self, interval=60):
+        schedule.every(interval).seconds.do(self.collect_system_metrics)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+# Usage
+monitor = SystemMonitor("http://localhost:8086", "TOKEN", "myorg", "metrics")
+monitor.start_monitoring(interval=30)</code></pre>
+              </div>
+
+              <h5 class="mt-4">Complex Task Orchestration</h5>
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-flux">option task = {
+    name: "Data Processing Pipeline",
+    every: 1h,
+    offset: 5m
+}
+
+// Step 1: Load and filter
+raw_data = from(bucket: "raw_metrics")
+    |> range(start: -1h)
+    |> filter(fn: (r) => r._measurement == "sensor_data")
+
+// Step 2: Calculate statistics
+stats = raw_data
+    |> aggregateWindow(every: 10m, fn: mean)
+    |> set(key: "_measurement", value: "stats")
+
+// Step 3: Write results
+stats |> to(bucket: "processed", org: "myorg")</code></pre>
+              </div>
+            </section>
+
+            <!-- Best Practices -->
+            <section id="best-practices" class="mt-5">
+              <h2 class="section-title">Best Practices</h2>
+
+              <div class="best-practice">
+                <h5><i class="fas fa-check-circle"></i> Connection Management</h5>
+                <p><strong>Do:</strong> Reuse client connections using singleton pattern</p>
+                <p><strong>Don't:</strong> Create new connections for every operation</p>
+              </div>
+
+              <div class="best-practice">
+                <h5><i class="fas fa-check-circle"></i> Batch Writing</h5>
+                <p><strong>Do:</strong> Write data in batches of 1000-5000 points</p>
+                <p><strong>Don't:</strong> Write individual points with flush after each</p>
+              </div>
+
+              <div class="best-practice">
+                <h5><i class="fas fa-check-circle"></i> Error Handling</h5>
+                <p><strong>Do:</strong> Implement retry logic with exponential backoff</p>
+                <p><strong>Don't:</strong> Ignore errors or retry indefinitely</p>
+              </div>
+
+              <div class="warning-box">
+                <h5><i class="fas fa-exclamation-triangle"></i> Security Best Practices</h5>
+                <ul>
+                  <li>Never hardcode tokens in source code</li>
+                  <li>Use environment variables or secret managers</li>
+                  <li>Implement appropriate token permissions (read-only, write-only, admin)</li>
+                  <li>Rotate tokens regularly</li>
+                  <li>Use HTTPS for production deployments</li>
+                </ul>
+              </div>
+
+              <h5 class="mt-4">Query Optimization</h5>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                      <i class="fas fa-check"></i> Optimized Query
+                    </div>
+                    <div class="card-body">
+                      <div class="code-block">
+                        <pre><code class="language-flux">from(bucket: "mybucket")
+  |> range(start: -1h, stop: now())
+  |> filter(fn: (r) => r._measurement == "cpu")
+  |> filter(fn: (r) => r.host == "server1")
+  |> aggregateWindow(every: 1m, fn: mean)</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                      <i class="fas fa-times"></i> Unoptimized Query
+                    </div>
+                    <div class="card-body">
+                      <div class="code-block">
+                        <pre><code class="language-flux">from(bucket: "mybucket")
+  |> range(start: -30d)
+  |> aggregateWindow(every: 1m, fn: mean)
+  |> filter(fn: (r) => r.host == "server1")</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Architecture Patterns -->
+            <section id="architecture" class="mt-5">
+              <h2 class="section-title">Real-World Architecture Patterns</h2>
+
+              <div class="card mb-4">
+                <div class="card-header">
+                  <i class="fas fa-layer-group"></i> Multi-Tier Monitoring
+                </div>
+                <div class="card-body">
+                  <div class="architecture-diagram">
+                    <pre>┌─────────────────────────────┐
+│  Raw Metrics (7 days)       │
+│  High-frequency data        │
+└──────────┬──────────────────┘
+           │ Downsampling (1h)
+┌──────────▼──────────────────┐
+│  Aggregated (90 days)       │
+│  Hourly averages            │
+└──────────┬──────────────────┘
+           │ Downsampling (1d)
+┌──────────▼──────────────────┐
+│  Historical (2 years)       │
+│  Daily summaries            │
+└─────────────────────────────┘</pre>
+                  </div>
+                  <p class="mt-3">This pattern implements data retention tiers with progressive downsampling for
+                    cost-effective long-term storage.</p>
+                </div>
+              </div>
+
+              <div class="card mb-4">
+                <div class="card-header">
+                  <i class="fas fa-globe"></i> Edge-to-Cloud Pipeline
+                </div>
+                <div class="card-body">
+                  <div class="architecture-diagram">
+                    <pre>┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ IoT Devices │────▶│ Edge Gateway│────▶│  Cloud DB   │
+│  (Sensors)  │     │  (InfluxDB) │     │  (InfluxDB) │
+└─────────────┘     └──────┬──────┘     └─────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Local     │
+                    │  Analytics  │
+                    └─────────────┘</pre>
+                  </div>
+                  <p class="mt-3">Edge computing pattern with local processing and cloud synchronization for IoT
+                    deployments.</p>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <i class="fas fa-cubes"></i> Microservices Monitoring
+                </div>
+                <div class="card-body">
+                  <div class="architecture-diagram">
+                    <pre>┌───────────┐  ┌───────────┐  ┌───────────┐
+│ Service A │  │ Service B │  │ Service C │
+└─────┬─────┘  └─────┬─────┘  └─────┬─────┘
+      └──────────────┼──────────────┘
+                     │
+              ┌──────▼──────┐
+              │  Telegraf   │
+              └──────┬──────┘
+                     │
+              ┌──────▼──────┐
+              │  InfluxDB   │
+              └──────┬──────┘
+                     │
+              ┌──────▼──────┐
+              │   Grafana   │
+              └─────────────┘</pre>
+                  </div>
+                  <p class="mt-3">Centralized monitoring for distributed microservices architecture.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Labs -->
+            <section id="labs" class="mt-5">
+              <h2 class="section-title">Hands-On Labs</h2>
+
+              <div class="lab-section">
+                <h4><i class="fas fa-flask"></i> Lab 1: Building a Complete Monitoring System</h4>
+                <p><strong>Objective:</strong> Create an end-to-end monitoring solution that collects system metrics,
+                  performs health checks, and sends alerts.</p>
+
+                <div class="alert alert-info">
+                  <strong><i class="fas fa-info-circle"></i> Prerequisites:</strong>
+                  <ul class="mb-0">
+                    <li>Python 3.8+ installed</li>
+                    <li>InfluxDB 2.x running</li>
+                    <li>Required packages: influxdb-client, psutil, schedule</li>
+                  </ul>
+                </div>
+
+                <h5 class="mt-3">Steps:</h5>
+                <ol>
+                  <li>Install required packages: <code>pip install influxdb-client psutil schedule</code></li>
+                  <li>Create a new bucket named "monitoring" in InfluxDB</li>
+                  <li>Generate an API token with write permissions</li>
+                  <li>Copy and run the monitoring system code from the examples</li>
+                  <li>Verify data collection in InfluxDB UI</li>
+                </ol>
+              </div>
+
+              <div class="lab-section">
+                <h4><i class="fas fa-flask"></i> Lab 2: IoT Data Pipeline</h4>
+                <p><strong>Objective:</strong> Build a simulated IoT data collection and processing pipeline.</p>
+
+                <div class="alert alert-info">
+                  <strong><i class="fas fa-info-circle"></i> What You'll Learn:</strong>
+                  <ul class="mb-0">
+                    <li>Simulating multiple IoT devices</li>
+                    <li>Batch data collection</li>
+                    <li>Time-series data patterns</li>
+                    <li>Real-time monitoring</li>
+                  </ul>
+                </div>
+
+                <button class="btn btn-custom mt-3"
+                  onclick="alert('Download the complete lab materials from the course repository!')">
+                  <i class="fas fa-download"></i> Download Lab Materials
+                </button>
+              </div>
+            </section>
+
+            <!-- Summary -->
+            <section id="summary" class="mt-5 mb-5">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h3 class="text-center mb-4"><i class="fas fa-graduation-cap"></i> Module Summary</h3>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h5>What We Covered:</h5>
+                      <ul>
+                        <li>✅ HTTP API endpoints and authentication</li>
+                        <li>✅ Client libraries (Python, C#, Node.js)</li>
+                        <li>✅ Interactive notebooks for analysis</li>
+                        <li>✅ DevOps, IoT, and cloud integrations</li>
+                        <li>✅ Automation and orchestration</li>
+                        <li>✅ Best practices and security</li>
+                        <li>✅ Real-world architecture patterns</li>
+                      </ul>
+                    </div>
+                    <div class="col-md-6">
+                      <h5>Next Steps:</h5>
+                      <ul>
+                        <li>🎯 Complete the hands-on labs</li>
+                        <li>🎯 Build custom integrations</li>
+                        <li>🎯 Experiment with different patterns</li>
+                        <li>🎯 Implement in production</li>
+                        <li>🎯 Explore advanced features</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="text-center mt-4">
+                    <button class="btn btn-custom btn-lg" onclick="alert('Congratulations on completing Module 9!')">
+                      <i class="fas fa-certificate"></i> Complete Module
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Tracker -->
+  <div class="progress-tracker">
+    <h6 class="mb-2">Progress</h6>
+    <div class="progress" style="height: 10px;">
+      <div class="progress-bar" id="progress-bar" role="progressbar"
+        style="width: 0%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+    </div>
+    <small class="text-muted" id="progress-text">0% Complete</small>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Prism.js for syntax highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+
+  <script>
+    // Copy code functionality
+    function copyCode(button) {
+      const codeBlock = button.nextElementSibling;
+      const code = codeBlock.textContent;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.style.background = '#28a745';
+
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.style.background = '';
+        }, 2000);
+      });
+    }
+
+    // Smooth scrolling for navigation
+    document.querySelectorAll('#module-nav a').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const targetSection = document.querySelector(targetId);
+
+        if (targetSection) {
+          targetSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+
+          // Update active state
+          document.querySelectorAll('#module-nav a').forEach(a => a.classList.remove('active'));
+          this.classList.add('active');
+        }
+      });
+    });
+
+    // Progress tracking
+    const sections = document.querySelectorAll('section');
+    let visitedSections = new Set();
+
+    function updateProgress() {
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      const percentage = Math.round((visitedSections.size / sections.length) * 100);
+
+      progressBar.style.width = percentage + '%';
+      progressText.textContent = percentage + '% Complete';
+    }
+
+    // Intersection Observer for progress tracking
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          visitedSections.add(entry.target.id);
+          updateProgress();
+        }
+      });
+    }, { threshold: 0.5 });
+
+    sections.forEach(section => {
+      if (section.id) {
+        observer.observe(section);
+      }
+    });
+
+    // Highlight active section in navigation
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= (sectionTop - 100)) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      document.querySelectorAll('#module-nav a').forEach(a => {
+        a.classList.remove('active');
+        if (a.getAttribute('href') === '#' + current) {
+          a.classList.add('active');
+        }
+      });
+    });
+
+    // Initialize syntax highlighting
+    Prism.highlightAll();
+  </script>
+</body>
+
+</html>
