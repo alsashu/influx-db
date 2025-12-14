@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  influxdb3:
+    image: influxdata/influxdb:3.0-core
+    container_name: influxdb3-core
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb3-data:/var/lib/influxdb3
+    environment:
+      - INFLUXDB_HTTP_BIND_ADDRESS=:8086
+    restart: unless-stopped

@@ -1,0 +1,133 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    INFLUXDB 3 CORE - QUICK REFERENCE CARD                     ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ SETUP (Docker on WSL2)                                                        ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ docker run -d --name influxdb3 -p 8086:8086 influxdata/influxdb:3.0-core    ║
+║ curl -X POST http://localhost:8086/api/v3/configure \                        ║
+║   -H "Content-Type: application/json" -d '{"database": "mydb"}'              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ LINE PROTOCOL SYNTAX                                                          ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ measurement,tag1=val1,tag2=val2 field1=1.0,field2=2i,field3="str" timestamp ║
+║                                                                               ║
+║ Rules:  • Comma between tags (NO spaces)                                     ║
+║         • Space between measurement and fields                               ║
+║         • Space between fields and timestamp                                 ║
+║         • Integer suffix: 42i, Float: 42.0, String: "text", Bool: true      ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ WRITE DATA                                                                    ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ curl -X POST "http://localhost:8086/api/v3/write?db=mydb" \                 ║
+║   --data-binary "weather,location=bangalore temp=28.5,humidity=65"           ║
+║                                                                               ║
+║ # Batch write (from file)                                                    ║
+║ curl -X POST "http://localhost:8086/api/v3/write?db=mydb" \                 ║
+║   --data-binary @data.txt                                                    ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ QUERY DATA (SQL)                                                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ curl -X POST "http://localhost:8086/api/v3/query?db=mydb" \                 ║
+║   -H "Content-Type: application/json" \                                      ║
+║   -d '{"query": "SELECT * FROM weather LIMIT 10"}'                           ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ COMMON SQL QUERIES                                                            ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ # Basic select with filter                                                   ║
+║ SELECT * FROM weather WHERE location = 'bangalore'                           ║
+║   AND time >= NOW() - INTERVAL '1 hour' ORDER BY time DESC LIMIT 100;       ║
+║                                                                               ║
+║ # Aggregation                                                                ║
+║ SELECT location, AVG(temperature) as avg_temp, COUNT(*) as samples          ║
+║ FROM weather GROUP BY location;                                              ║
+║                                                                               ║
+║ # Time bucketing (5-minute intervals)                                        ║
+║ SELECT DATE_BIN(INTERVAL '5 minutes', time, TIMESTAMP '1970-01-01') as bucket,║
+║        AVG(temperature) as avg_temp                                          ║
+║ FROM weather WHERE time >= NOW() - INTERVAL '1 hour'                         ║
+║ GROUP BY bucket ORDER BY bucket DESC;                                        ║
+║                                                                               ║
+║ # Moving average (window function)                                           ║
+║ SELECT time, temperature,                                                    ║
+║        AVG(temperature) OVER (ORDER BY time ROWS BETWEEN 4 PRECEDING         ║
+║        AND CURRENT ROW) as moving_avg_5                                      ║
+║ FROM weather ORDER BY time;                                                  ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ TIME FUNCTIONS                                                                ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ NOW()                              # Current timestamp                       ║
+║ NOW() - INTERVAL '1 hour'          # 1 hour ago                             ║
+║ NOW() - INTERVAL '7 days'          # 7 days ago                             ║
+║ DATE_TRUNC('hour', time)           # Truncate to hour                       ║
+║ DATE_BIN(INTERVAL '5 min', time, TIMESTAMP '1970-01-01')  # 5-min buckets  ║
+║ EXTRACT(HOUR FROM time)            # Extract hour component                 ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ DATA MODEL                                                                    ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ Database → Table (measurement) → {Tags, Fields, Timestamp}                   ║
+║                                                                               ║
+║ Tags:   Indexed metadata (strings only) - for filtering/grouping            ║
+║         Example: location=bangalore, sensor_id=th01                          ║
+║                                                                               ║
+║ Fields: Actual measurements (typed: int, float, string, bool)               ║
+║         Example: temperature=28.5, count=42i, status="ok"                   ║
+║                                                                               ║
+║ Time:   Nanosecond precision, automatically indexed                         ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ BEST PRACTICES                                                                ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ ✅ DO:                                  ❌ DON'T:                            ║
+║ • Batch writes (100-5000 points)       • One point per HTTP request         ║
+║ • Include explicit timestamps          • Rely on server timestamps          ║
+║ • Always use time ranges in queries    • SELECT * without WHERE time        ║
+║ • Use tags for filtering/grouping      • Use fields as tags                 ║
+║ • Select specific columns              • SELECT * in production             ║
+║ • Use LIMIT for large result sets      • Omit LIMIT in exploratory queries  ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ COMMON MISTAKES                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ ❌ weather, location=bangalore temp=28.5     # Space before comma           ║
+║ ❌ weather,location = bangalore temp=28.5    # Space around =               ║
+║ ❌ weather,location=bangalore,temp=28.5      # Field as tag                 ║
+║ ❌ sensor value=28.5                          # Type conflict later:        ║
+║    sensor value="offline"                    # Different type!              ║
+║                                                                               ║
+║ ✅ weather,location=bangalore temp=28.5      # Correct!                     ║
+║ ✅ sensor value=28.5,status="online"         # Separate fields              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ KEY ARCHITECTURE COMPONENTS                                                   ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ Apache Arrow:   Columnar in-memory format (zero-copy, vectorized)           ║
+║ Parquet:        Compressed columnar storage (10-20x compression)            ║
+║ DataFusion:     SQL query engine (Rust-based, cost-optimized)               ║
+║ WAL:            Write-Ahead Log (durability, crash recovery)                ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ INFLUXDB 2 vs 3                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ Query Language:   Flux/InfluxQL → SQL (PostgreSQL-compatible)               ║
+║ Storage:          TSM → Arrow + Parquet                                      ║
+║ Cardinality:      ~1M series → 100M+ series                                 ║
+║ Format:           Proprietary → Open standards                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ PERFORMANCE TIPS                                                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ Fast Queries:                         Slow Queries:                          ║
+║ • SELECT specific columns             • SELECT * on large tables            ║
+║ • WHERE with time ranges              • No time filter                      ║
+║ • Filter on tags (indexed)            • Filter on field values              ║
+║ • Use LIMIT                            • String operations on fields         ║
+║ • Predicate pushdown (WHERE)          • Complex per-row calculations        ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ TROUBLESHOOTING                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ curl http://localhost:8086/health              # Check if running           ║
+║ docker logs influxdb3                          # View logs                  ║
+║ docker exec -it influxdb3 bash                 # Access container           ║
+║ SELECT * FROM information_schema.tables;       # List all tables            ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ USEFUL LINKS                                                                  ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ Docs:      https://docs.influxdata.com/influxdb/v3/                         ║
+║ GitHub:    https://github.com/influxdata/influxdb                           ║
+║ Community: https://community.influxdata.com/                                 ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
