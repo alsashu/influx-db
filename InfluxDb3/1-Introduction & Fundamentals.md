@@ -2,22 +2,6 @@
 
 ## 1.1 InfluxDB 3 क्या है?
 
-**Simple Definition:**
-InfluxDB 3 ek specialized database hai jo **time-series data** ko store aur query karne ke liye design kiya gaya hai.
-
-**Time-Series Data kya hota hai?**
-Wo data jo time ke saath change hota hai:
-
-* Temperature readings har 5 second pe
-* CPU usage har minute
-* Stock prices har second
-* IoT sensor data continuously
-* Application logs with timestamps
-
-**Example:*
-
-### 1.1 What is InfluxDB 3?
-
 Simple Definition
 : InfluxDB 3 ek specialized database hai jo time-series data ko store aur query karne ke liye design kiya gaya hai.
 
