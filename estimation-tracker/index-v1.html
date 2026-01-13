@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d6efd">
+    <title>Estimation Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-calculator"></i> Estimation Tracker
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="navbar-text" id="syncStatus">
+                            <i class="bi bi-wifi"></i> Online
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid mt-4">
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="historic-tab" data-bs-toggle="tab" data-bs-target="#historic" type="button" role="tab">
+                    <i class="bi bi-database"></i> Historic Data
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result" type="button" role="tab">
+                    <i class="bi bi-graph-up"></i> Result
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                    <i class="bi bi-pie-chart"></i> Analytics
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="mainTabContent">
+            <!-- Historic Data Tab -->
+            <div class="tab-pane fade show active" id="historic" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Historic Data</h5>
+                        <div>
+                            <button class="btn btn-success btn-sm" id="addHistoricBtn">
+                                <i class="bi bi-plus-circle"></i> Add Entry
+                            </button>
+                            <button class="btn btn-danger btn-sm" id="clearHistoricBtn">
+                                <i class="bi bi-trash"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="historicTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Complexity</th>
+                                        <th>Risk</th>
+                                        <th>No. of Requirements</th>
+                                        <th>Competency Level</th>
+                                        <th>Actual Hours</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historicTableBody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Tab -->
+            <div class="tab-pane fade" id="result" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Estimation Results</h5>
+                        <div>
+                            <button class="btn btn-success btn-sm" id="addResultBtn">
+                                <i class="bi bi-plus-circle"></i> Add Estimation
+                            </button>
+                            <button class="btn btn-danger btn-sm" id="clearResultBtn">
+                                <i class="bi bi-trash"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="resultTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Complexity</th>
+                                        <th>Risk</th>
+                                        <th>No. of Requirements</th>
+                                        <th>Competency Level</th>
+                                        <th>Estimated Hours</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultTableBody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Summary Statistics</h5>
+                            </div>
+                            <div class="card-body" id="summaryStats">
+                                <!-- Dynamic content -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Accuracy Analysis</h5>
+                            </div>
+                            <div class="card-body" id="accuracyAnalysis">
+                                <!-- Dynamic content -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historic Data Modal -->
+    <div class="modal fade" id="historicModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historicModalTitle">Add Historic Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="historicForm">
+                        <input type="hidden" id="historicId">
+                        
+                        <div class="mb-3">
+                            <label for="historicComplexity" class="form-label">Complexity</label>
+                            <select class="form-select" id="historicComplexity" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicRisk" class="form-label">Risk</label>
+                            <select class="form-select" id="historicRisk" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicRequirements" class="form-label">Number of Requirements</label>
+                            <input type="number" class="form-control" id="historicRequirements" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicCompetency" class="form-label">Competency Level</label>
+                            <select class="form-select" id="historicCompetency" required>
+                                <option value="">Select...</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Expert">Expert</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicActualHours" class="form-label">Actual Hours</label>
+                            <input type="number" class="form-control" id="historicActualHours" min="1" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveHistoricBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalTitle">Add Estimation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="resultForm">
+                        <input type="hidden" id="resultId">
+                        
+                        <div class="mb-3">
+                            <label for="resultComplexity" class="form-label">Complexity</label>
+                            <select class="form-select" id="resultComplexity" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="resultRisk" class="form-label">Risk</label>
+                            <select class="form-select" id="resultRisk" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="resultRequirements" class="form-label">Number of Requirements</label>
+                            <input type="number" class="form-control" id="resultRequirements" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="resultCompetency" class="form-label">Competency Level</label>
+                            <select class="form-select" id="resultCompetency" required>
+                                <option value="">Select...</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Expert">Expert</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Hours (Auto-calculated)</label>
+                            <input type="text" class="form-control" id="resultEstimatedHours" readonly>
+                            <div class="form-text">
+                                Formula: Requirements × 4 × Complexity Factor × Risk Factor × Competency Factor
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveResultBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="js/db.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/service-worker-register.js"></script>
+</body>
+</html>

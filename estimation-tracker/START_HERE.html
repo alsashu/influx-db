@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimation Tracker - Setup Instructions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #0d6efd;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+        
+        .steps {
+            margin: 30px 0;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .step h3 {
+            color: #0d6efd;
+            margin-bottom: 10px;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #0d6efd;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 10px 10px 10px 0;
+            transition: transform 0.2s;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            background: #0b5ed7;
+        }
+        
+        .button-secondary {
+            background: #6c757d;
+        }
+        
+        .button-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background: #d1e7dd;
+            border-color: #badbcc;
+            color: #0f5132;
+        }
+        
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+            color: #6c757d;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Estimation Tracker</h1>
+        <p class="subtitle">Professional project estimation and tracking tool - Progressive Web App</p>
+        
+        <div class="alert">
+            <strong>⚠️ Setup Required:</strong> This app needs to be served from a web server. Follow the steps below to get started.
+        </div>
+        
+        <div class="steps">
+            <div class="step">
+                <h3>Step 1: Open Terminal/Command Prompt</h3>
+                <p>Navigate to the project directory where these files are located.</p>
+            </div>
+            
+            <div class="step">
+                <h3>Step 2: Start a Web Server</h3>
+                <p>Choose one of these commands based on what you have installed:</p>
+                
+                <p><strong>Using Python 3:</strong></p>
+                <div class="code-block">python -m http.server 8000</div>
+                
+                <p><strong>Using Python 2:</strong></p>
+                <div class="code-block">python -m SimpleHTTPServer 8000</div>
+                
+                <p><strong>Using Node.js (http-server):</strong></p>
+                <div class="code-block">npx http-server -p 8000</div>
+                
+                <p><strong>Using PHP:</strong></p>
+                <div class="code-block">php -S localhost:8000</div>
+            </div>
+            
+            <div class="step">
+                <h3>Step 3: Open in Browser</h3>
+                <p>Once the server is running, open your browser and go to:</p>
+                <div class="code-block">http://localhost:8000</div>
+                <a href="http://localhost:8000/index.html" class="button">🚀 Launch App (if server is running)</a>
+            </div>
+        </div>
+        
+        <div class="alert success">
+            <strong>✅ Pro Tip:</strong> After first load, the app works completely offline! Install it as a PWA for the best experience.
+        </div>
+        
+        <h2 style="margin-top: 40px; color: #0d6efd;">✨ Key Features</h2>
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <h4>Offline First</h4>
+                <p>Works without internet</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🧮</div>
+                <h4>Auto Calculate</h4>
+                <p>Smart estimation formula</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📈</div>
+                <h4>Analytics</h4>
+                <p>Track accuracy over time</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <h4>Modern UI</h4>
+                <p>Beautiful & responsive</p>
+            </div>
+        </div>
+        
+        <h2 style="margin-top: 40px; color: #0d6efd;">📚 Documentation</h2>
+        <a href="README.md" class="button button-secondary">Full Documentation</a>
+        <a href="QUICKSTART.md" class="button button-secondary">Quick Start Guide</a>
+        
+        <h2 style="margin-top: 40px; color: #0d6efd;">🎯 Estimation Formula</h2>
+        <div class="step">
+            <div class="code-block" style="color: #fbbf24;">
+Estimated Hours = Requirements × 4 × Complexity × Risk × Competency
+
+Complexity: Low (1.0) | Medium (1.5) | High (2.0)
+Risk: Low (1.0) | Medium (1.2) | High (1.5)
+Competency: Expert (0.8) | Intermediate (1.0) | Beginner (1.2)
+            </div>
+        </div>
+        
+        <footer>
+            <p>Built with ❤️ using JavaScript, IndexedDB, and Bootstrap</p>
+            <p style="margin-top: 10px;">Progressive Web App • Offline Capable • Data Privacy First</p>
+        </footer>
+    </div>
+</body>
+</html>

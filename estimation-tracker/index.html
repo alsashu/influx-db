@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d6efd">
+    <title>Estimation Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f1f3f5;
+            transform: scale(1.01);
+        }
+
+        .badge {
+            padding: 0.5em 0.8em;
+            font-weight: 500;
+        }
+
+        .badge-complexity-low { background-color: #d1e7dd; color: #0f5132; }
+        .badge-complexity-medium { background-color: #fff3cd; color: #664d03; }
+        .badge-complexity-high { background-color: #f8d7da; color: #842029; }
+        .badge-risk-low { background-color: #cfe2ff; color: #084298; }
+        .badge-risk-medium { background-color: #fff3cd; color: #664d03; }
+        .badge-risk-high { background-color: #f8d7da; color: #842029; }
+        .badge-competency-beginner { background-color: #e7e7e7; color: #495057; }
+        .badge-competency-intermediate { background-color: #cfe2ff; color: #084298; }
+        .badge-competency-expert { background-color: #d1e7dd; color: #0f5132; }
+
+        .modal-content {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table tbody tr {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-calculator"></i> Estimation Tracker
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="navbar-text" id="syncStatus">
+                            <i class="bi bi-wifi"></i> Online
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid mt-4">
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="historic-tab" data-bs-toggle="tab" data-bs-target="#historic" type="button" role="tab">
+                    <i class="bi bi-database"></i> Historic Data
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="result-tab" data-bs-toggle="tab" data-bs-target="#result" type="button" role="tab">
+                    <i class="bi bi-graph-up"></i> Result
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                    <i class="bi bi-pie-chart"></i> Analytics
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="mainTabContent">
+            <!-- Historic Data Tab -->
+            <div class="tab-pane fade show active" id="historic" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Historic Data</h5>
+                        <div>
+                            <button class="btn btn-success btn-sm" id="addHistoricBtn">
+                                <i class="bi bi-plus-circle"></i> Add Entry
+                            </button>
+                            <button class="btn btn-danger btn-sm" id="clearHistoricBtn">
+                                <i class="bi bi-trash"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="historicTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Complexity</th>
+                                        <th>Risk</th>
+                                        <th>No. of Requirements</th>
+                                        <th>Competency Level</th>
+                                        <th>Actual Hours</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historicTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            <div class="empty-state">
+                                                <i class="bi bi-inbox"></i>
+                                                <h5>No Historic Data</h5>
+                                                <p>Click "Add Entry" to start tracking actual hours</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Tab -->
+            <div class="tab-pane fade" id="result" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Estimation Results</h5>
+                        <div>
+                            <button class="btn btn-success btn-sm" id="addResultBtn">
+                                <i class="bi bi-plus-circle"></i> Add Estimation
+                            </button>
+                            <button class="btn btn-danger btn-sm" id="clearResultBtn">
+                                <i class="bi bi-trash"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="resultTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Complexity</th>
+                                        <th>Risk</th>
+                                        <th>No. of Requirements</th>
+                                        <th>Competency Level</th>
+                                        <th>Estimated Hours</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            <div class="empty-state">
+                                                <i class="bi bi-graph-up"></i>
+                                                <h5>No Estimations</h5>
+                                                <p>Click "Add Estimation" to create a new estimation</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Summary Statistics</h5>
+                            </div>
+                            <div class="card-body" id="summaryStats">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> Add data to see statistics
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historic Data Modal -->
+    <div class="modal fade" id="historicModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historicModalTitle">Add Historic Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="historicForm">
+                        <input type="hidden" id="historicId">
+                        
+                        <div class="mb-3">
+                            <label for="historicComplexity" class="form-label">Complexity</label>
+                            <select class="form-select" id="historicComplexity" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicRisk" class="form-label">Risk</label>
+                            <select class="form-select" id="historicRisk" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicRequirements" class="form-label">Number of Requirements</label>
+                            <input type="number" class="form-control" id="historicRequirements" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicCompetency" class="form-label">Competency Level</label>
+                            <select class="form-select" id="historicCompetency" required>
+                                <option value="">Select...</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Expert">Expert</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="historicActualHours" class="form-label">Actual Hours</label>
+                            <input type="number" class="form-control" id="historicActualHours" min="1" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveHistoricBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalTitle">Add Estimation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="resultForm">
+                        <input type="hidden" id="resultId">
+                        
+                        <div class="mb-3">
+                            <label for="resultComplexity" class="form-label">Complexity</label>
+                            <select class="form-select" id="resultComplexity" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="resultRisk" class="form-label">Risk</label>
+                            <select class="form-select" id="resultRisk" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="resultRequirements" class="form-label">Number of Requirements</label>
+                            <input type="number" class="form-control" id="resultRequirements" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="resultCompetency" class="form-label">Competency Level</label>
+                            <select class="form-select" id="resultCompetency" required>
+                                <option value="">Select...</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Expert">Expert</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Hours (Auto-calculated)</label>
+                            <input type="text" class="form-control bg-light" id="resultEstimatedHours" readonly>
+                            <div class="form-text">
+                                Formula: Requirements × 4 × Complexity Factor × Risk Factor × Competency Factor
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveResultBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Embedded JavaScript -->
+    <script>
+        // IndexedDB Database Manager
+        const DB_NAME = 'EstimationTrackerDB';
+        const DB_VERSION = 1;
+        const STORE_HISTORIC = 'historicData';
+        const STORE_RESULT = 'resultData';
+
+        class DatabaseManager {
+            constructor() {
+                this.db = null;
+            }
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                    request.onerror = () => {
+                        console.error('Database failed to open');
+                        reject(request.error);
+                    };
+
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        console.log('Database opened successfully');
+                        resolve(this.db);
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+
+                        if (!db.objectStoreNames.contains(STORE_HISTORIC)) {
+                            const historicStore = db.createObjectStore(STORE_HISTORIC, {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            });
+                            historicStore.createIndex('complexity', 'complexity', { unique: false });
+                            historicStore.createIndex('risk', 'risk', { unique: false });
+                            historicStore.createIndex('competency', 'competency', { unique: false });
+                        }
+
+                        if (!db.objectStoreNames.contains(STORE_RESULT)) {
+                            const resultStore = db.createObjectStore(STORE_RESULT, {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            });
+                            resultStore.createIndex('complexity', 'complexity', { unique: false });
+                            resultStore.createIndex('risk', 'risk', { unique: false });
+                            resultStore.createIndex('competency', 'competency', { unique: false });
+                        }
+                    };
+                });
+            }
+
+            async add(storeName, data) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([storeName], 'readwrite');
+                    const objectStore = transaction.objectStore(storeName);
+                    const request = objectStore.add(data);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getAll(storeName) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([storeName], 'readonly');
+                    const objectStore = transaction.objectStore(storeName);
+                    const request = objectStore.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async get(storeName, id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([storeName], 'readonly');
+                    const objectStore = transaction.objectStore(storeName);
+                    const request = objectStore.get(id);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async update(storeName, data) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([storeName], 'readwrite');
+                    const objectStore = transaction.objectStore(storeName);
+                    const request = objectStore.put(data);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async delete(storeName, id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([storeName], 'readwrite');
+                    const objectStore = transaction.objectStore(storeName);
+                    const request = objectStore.delete(id);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async clear(storeName) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction([storeName], 'readwrite');
+                    const objectStore = transaction.objectStore(storeName);
+                    const request = objectStore.clear();
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        }
+
+        const dbManager = new DatabaseManager();
+
+        // Main Application Logic
+        class EstimationTracker {
+            constructor() {
+                this.historicModal = null;
+                this.resultModal = null;
+                this.editingHistoricId = null;
+                this.editingResultId = null;
+            }
+
+            async init() {
+                try {
+                    console.log('Initializing application...');
+                    
+                    // Initialize database
+                    await dbManager.init();
+                    console.log('Database initialized');
+
+                    // Setup event listeners
+                    this.setupEventListeners();
+                    console.log('Event listeners setup');
+
+                    // Initialize Bootstrap modals
+                    this.historicModal = new bootstrap.Modal(document.getElementById('historicModal'));
+                    this.resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+                    console.log('Modals initialized');
+
+                    // Load data
+                    await this.loadHistoricData();
+                    await this.loadResultData();
+                    await this.updateAnalytics();
+
+                    console.log('Application initialized successfully');
+                } catch (error) {
+                    console.error('Error initializing application:', error);
+                    alert('Failed to initialize application: ' + error.message);
+                }
+            }
+
+            setupEventListeners() {
+                // Historic Data listeners
+                const addHistoricBtn = document.getElementById('addHistoricBtn');
+                const saveHistoricBtn = document.getElementById('saveHistoricBtn');
+                const clearHistoricBtn = document.getElementById('clearHistoricBtn');
+
+                if (addHistoricBtn) {
+                    addHistoricBtn.addEventListener('click', (e) => {
+                        console.log('Add Historic clicked');
+                        this.showHistoricModal();
+                    });
+                }
+
+                if (saveHistoricBtn) {
+                    saveHistoricBtn.addEventListener('click', () => this.saveHistoricData());
+                }
+
+                if (clearHistoricBtn) {
+                    clearHistoricBtn.addEventListener('click', () => this.clearHistoricData());
+                }
+
+                // Result Data listeners
+                const addResultBtn = document.getElementById('addResultBtn');
+                const saveResultBtn = document.getElementById('saveResultBtn');
+                const clearResultBtn = document.getElementById('clearResultBtn');
+
+                if (addResultBtn) {
+                    addResultBtn.addEventListener('click', (e) => {
+                        console.log('Add Result clicked');
+                        this.showResultModal();
+                    });
+                }
+
+                if (saveResultBtn) {
+                    saveResultBtn.addEventListener('click', () => this.saveResultData());
+                }
+
+                if (clearResultBtn) {
+                    clearResultBtn.addEventListener('click', () => this.clearResultData());
+                }
+
+                // Auto-calculate estimation
+                const resultInputs = ['resultComplexity', 'resultRisk', 'resultRequirements', 'resultCompetency'];
+                resultInputs.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.calculateEstimation());
+                        element.addEventListener('input', () => this.calculateEstimation());
+                    }
+                });
+
+                console.log('All event listeners attached');
+            }
+
+            showHistoricModal(id = null) {
+                console.log('Showing historic modal', id);
+                this.editingHistoricId = id;
+                document.getElementById('historicModalTitle').textContent = id ? 'Edit Historic Data' : 'Add Historic Data';
+
+                if (id) {
+                    this.loadHistoricForEdit(id);
+                } else {
+                    document.getElementById('historicForm').reset();
+                    document.getElementById('historicId').value = '';
+                }
+
+                this.historicModal.show();
+            }
+
+            async loadHistoricForEdit(id) {
+                try {
+                    const data = await dbManager.get(STORE_HISTORIC, id);
+                    if (data) {
+                        document.getElementById('historicId').value = data.id;
+                        document.getElementById('historicComplexity').value = data.complexity;
+                        document.getElementById('historicRisk').value = data.risk;
+                        document.getElementById('historicRequirements').value = data.requirements;
+                        document.getElementById('historicCompetency').value = data.competency;
+                        document.getElementById('historicActualHours').value = data.actualHours;
+                    }
+                } catch (error) {
+                    console.error('Error loading historic data:', error);
+                    alert('Failed to load data');
+                }
+            }
+
+            async saveHistoricData() {
+                const form = document.getElementById('historicForm');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const data = {
+                    complexity: document.getElementById('historicComplexity').value,
+                    risk: document.getElementById('historicRisk').value,
+                    requirements: parseInt(document.getElementById('historicRequirements').value),
+                    competency: document.getElementById('historicCompetency').value,
+                    actualHours: parseInt(document.getElementById('historicActualHours').value),
+                    createdAt: new Date().toISOString()
+                };
+
+                try {
+                    const id = document.getElementById('historicId').value;
+                    if (id) {
+                        data.id = parseInt(id);
+                        await dbManager.update(STORE_HISTORIC, data);
+                        alert('Historic data updated successfully');
+                    } else {
+                        await dbManager.add(STORE_HISTORIC, data);
+                        alert('Historic data added successfully');
+                    }
+
+                    this.historicModal.hide();
+                    await this.loadHistoricData();
+                    await this.updateAnalytics();
+                } catch (error) {
+                    console.error('Error saving historic data:', error);
+                    alert('Failed to save data');
+                }
+            }
+
+            async loadHistoricData() {
+                try {
+                    const data = await dbManager.getAll(STORE_HISTORIC);
+                    const tbody = document.getElementById('historicTableBody');
+
+                    if (data.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="empty-state">
+                                        <i class="bi bi-inbox"></i>
+                                        <h5>No Historic Data</h5>
+                                        <p>Click "Add Entry" to start tracking actual hours</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    tbody.innerHTML = data.map((item, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><span class="badge badge-complexity-${item.complexity.toLowerCase()}">${item.complexity}</span></td>
+                            <td><span class="badge badge-risk-${item.risk.toLowerCase()}">${item.risk}</span></td>
+                            <td>${item.requirements}</td>
+                            <td><span class="badge badge-competency-${item.competency.toLowerCase()}">${item.competency}</span></td>
+                            <td><strong>${item.actualHours} hrs</strong></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.showHistoricModal(${item.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="app.deleteHistoric(${item.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error loading historic data:', error);
+                }
+            }
+
+            async deleteHistoric(id) {
+                if (!confirm('Are you sure you want to delete this entry?')) {
+                    return;
+                }
+
+                try {
+                    await dbManager.delete(STORE_HISTORIC, id);
+                    alert('Historic data deleted successfully');
+                    await this.loadHistoricData();
+                    await this.updateAnalytics();
+                } catch (error) {
+                    console.error('Error deleting historic data:', error);
+                    alert('Failed to delete data');
+                }
+            }
+
+            async clearHistoricData() {
+                if (!confirm('Are you sure you want to clear all historic data? This action cannot be undone.')) {
+                    return;
+                }
+
+                try {
+                    await dbManager.clear(STORE_HISTORIC);
+                    alert('All historic data cleared');
+                    await this.loadHistoricData();
+                    await this.updateAnalytics();
+                } catch (error) {
+                    console.error('Error clearing historic data:', error);
+                    alert('Failed to clear data');
+                }
+            }
+
+            showResultModal(id = null) {
+                console.log('Showing result modal', id);
+                this.editingResultId = id;
+                document.getElementById('resultModalTitle').textContent = id ? 'Edit Estimation' : 'Add Estimation';
+
+                if (id) {
+                    this.loadResultForEdit(id);
+                } else {
+                    document.getElementById('resultForm').reset();
+                    document.getElementById('resultId').value = '';
+                    document.getElementById('resultEstimatedHours').value = '';
+                }
+
+                this.resultModal.show();
+            }
+
+            async loadResultForEdit(id) {
+                try {
+                    const data = await dbManager.get(STORE_RESULT, id);
+                    if (data) {
+                        document.getElementById('resultId').value = data.id;
+                        document.getElementById('resultComplexity').value = data.complexity;
+                        document.getElementById('resultRisk').value = data.risk;
+                        document.getElementById('resultRequirements').value = data.requirements;
+                        document.getElementById('resultCompetency').value = data.competency;
+                        document.getElementById('resultEstimatedHours').value = data.estimatedHours;
+                    }
+                } catch (error) {
+                    console.error('Error loading result data:', error);
+                    alert('Failed to load data');
+                }
+            }
+
+            calculateEstimation() {
+                const complexity = document.getElementById('resultComplexity').value;
+                const risk = document.getElementById('resultRisk').value;
+                const requirements = parseInt(document.getElementById('resultRequirements').value) || 0;
+                const competency = document.getElementById('resultCompetency').value;
+
+                if (!complexity || !risk || !requirements || !competency) {
+                    document.getElementById('resultEstimatedHours').value = '';
+                    return;
+                }
+
+                let complexityFactor = 1;
+                if (complexity === 'Low') complexityFactor = 1;
+                else if (complexity === 'Medium') complexityFactor = 1.5;
+                else if (complexity === 'High') complexityFactor = 2;
+
+                let riskFactor = 1;
+                if (risk === 'Low') riskFactor = 1;
+                else if (risk === 'Medium') riskFactor = 1.2;
+                else if (risk === 'High') riskFactor = 1.5;
+
+                let competencyFactor = 1;
+                if (competency === 'Beginner') competencyFactor = 1.2;
+                else if (competency === 'Intermediate') competencyFactor = 1;
+                else if (competency === 'Expert') competencyFactor = 0.8;
+
+                const estimatedHours = requirements * 4 * complexityFactor * riskFactor * competencyFactor;
+                document.getElementById('resultEstimatedHours').value = estimatedHours.toFixed(2);
+            }
+
+            async saveResultData() {
+                const form = document.getElementById('resultForm');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const estimatedHours = parseFloat(document.getElementById('resultEstimatedHours').value);
+                if (!estimatedHours) {
+                    alert('Please fill all fields to calculate estimation');
+                    return;
+                }
+
+                const data = {
+                    complexity: document.getElementById('resultComplexity').value,
+                    risk: document.getElementById('resultRisk').value,
+                    requirements: parseInt(document.getElementById('resultRequirements').value),
+                    competency: document.getElementById('resultCompetency').value,
+                    estimatedHours: estimatedHours,
+                    createdAt: new Date().toISOString()
+                };
+
+                try {
+                    const id = document.getElementById('resultId').value;
+                    if (id) {
+                        data.id = parseInt(id);
+                        await dbManager.update(STORE_RESULT, data);
+                        alert('Estimation updated successfully');
+                    } else {
+                        await dbManager.add(STORE_RESULT, data);
+                        alert('Estimation added successfully');
+                    }
+
+                    this.resultModal.hide();
+                    await this.loadResultData();
+                    await this.updateAnalytics();
+                } catch (error) {
+                    console.error('Error saving result data:', error);
+                    alert('Failed to save data');
+                }
+            }
+
+            async loadResultData() {
+                try {
+                    const data = await dbManager.getAll(STORE_RESULT);
+                    const tbody = document.getElementById('resultTableBody');
+
+                    if (data.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="empty-state">
+                                        <i class="bi bi-graph-up"></i>
+                                        <h5>No Estimations</h5>
+                                        <p>Click "Add Estimation" to create a new estimation</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    tbody.innerHTML = data.map((item, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><span class="badge badge-complexity-${item.complexity.toLowerCase()}">${item.complexity}</span></td>
+                            <td><span class="badge badge-risk-${item.risk.toLowerCase()}">${item.risk}</span></td>
+                            <td>${item.requirements}</td>
+                            <td><span class="badge badge-competency-${item.competency.toLowerCase()}">${item.competency}</span></td>
+                            <td><strong>${item.estimatedHours.toFixed(2)} hrs</strong></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.showResultModal(${item.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="app.deleteResult(${item.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error loading result data:', error);
+                }
+            }
+
+            async deleteResult(id) {
+                if (!confirm('Are you sure you want to delete this estimation?')) {
+                    return;
+                }
+
+                try {
+                    await dbManager.delete(STORE_RESULT, id);
+                    alert('Estimation deleted successfully');
+                    await this.loadResultData();
+                    await this.updateAnalytics();
+                } catch (error) {
+                    console.error('Error deleting result data:', error);
+                    alert('Failed to delete data');
+                }
+            }
+
+            async clearResultData() {
+                if (!confirm('Are you sure you want to clear all estimations? This action cannot be undone.')) {
+                    return;
+                }
+
+                try {
+                    await dbManager.clear(STORE_RESULT);
+                    alert('All estimations cleared');
+                    await this.loadResultData();
+                    await this.updateAnalytics();
+                } catch (error) {
+                    console.error('Error clearing result data:', error);
+                    alert('Failed to clear data');
+                }
+            }
+
+            async updateAnalytics() {
+                try {
+                    const historicData = await dbManager.getAll(STORE_HISTORIC);
+                    const resultData = await dbManager.getAll(STORE_RESULT);
+
+                    const totalHistoric = historicData.length;
+                    const totalResult = resultData.length;
+                    const totalActualHours = historicData.reduce((sum, item) => sum + item.actualHours, 0);
+                    const totalEstimatedHours = resultData.reduce((sum, item) => sum + item.estimatedHours, 0);
+                    const avgActualHours = totalHistoric > 0 ? (totalActualHours / totalHistoric).toFixed(2) : 0;
+                    const avgEstimatedHours = totalResult > 0 ? (totalEstimatedHours / totalResult).toFixed(2) : 0;
+
+                    document.getElementById('summaryStats').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0">${totalHistoric}</h3>
+                                        <p class="mb-0">Historic Entries</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0">${totalResult}</h3>
+                                        <p class="mb-0">Estimations</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0">${totalActualHours} hrs</h3>
+                                        <p class="mb-0">Total Actual Hours</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-warning text-dark">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0">${totalEstimatedHours.toFixed(2)} hrs</h3>
+                                        <p class="mb-0">Total Estimated Hours</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-secondary text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0">${avgActualHours} hrs</h3>
+                                        <p class="mb-0">Avg Actual Hours</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-dark text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0">${avgEstimatedHours} hrs</h3>
+                                        <p class="mb-0">Avg Estimated Hours</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error updating analytics:', error);
+                }
+            }
+        }
+
+        // Initialize application
+        const app = new EstimationTracker();
+
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM loaded, initializing app...');
+                app.init();
+            });
+        } else {
+            console.log('DOM already loaded, initializing app...');
+            app.init();
+        }
+    </script>
+</body>
+</html>
