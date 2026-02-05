@@ -1,0 +1,62 @@
+<app-generic-context-menu
+  #mainContextMenu
+  [parent]="this"
+  [contextMenuActions]="contextMenuActions"
+></app-generic-context-menu>
+
+<div class="view-top-bar" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+  <!-- Multi view (main or bottom view container) -->
+  <div *ngIf="multiView">
+    <div
+      *ngFor="let view of config.views"
+      [ngClass]="{ title: true, 'title-tab': true, 'title-selected': config.selectedView === view }"
+      pDraggable="dd"
+      (onDragStart)="onDragStart($event, view)"
+      (onDragEnd)="onDragEnd($event, view)"
+      (dragover)="onDragOver($event)"
+      (drop)="onDrop($event, view)"
+      [ngbTooltip]="viewService.getViewTooltip(view)"
+      (contextmenu)="onRightClick($event, view)"
+    >
+      <span (click)="selectView(view)">
+        {{ viewService.getViewTitle(view) }}
+      </span>
+      <a class="btn-close" (click)="closeView(view)">&times;</a>
+    </div>
+    <a class="btn-close btn-right" (click)="splitArea.visible = false; viewService.refreshColumnVisibility()"
+      >&times;</a
+    >
+  </div>
+
+  <!-- Mono view -->
+  <div *ngIf="!multiView && config && config.selectedView">
+    <div class="title title-bar">
+      <span>
+        {{ viewService.getViewTitle(config.selectedView) }}
+      </span>
+      <a class="btn-close btn-right" (click)="viewService.hideView(splitArea, view)">&times;</a>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngFor="let view of config ? config.views : []"
+  class="view-container"
+  [ngbCollapse]="!config || config.selectedView !== view"
+>
+  <app-model-view *ngIf="view.type === 'model-view'"></app-model-view>
+  <app-properties-view *ngIf="view.type === 'properties-view'"></app-properties-view>
+  <app-library-view *ngIf="view.type === 'library-view'"></app-library-view>
+  <app-message-view *ngIf="view.type === 'message-view'"></app-message-view>
+  <app-graphic-view *ngIf="view.type === 'graphic-view'" [config]="view.config"></app-graphic-view>
+  <app-svg-view *ngIf="view.type === 'svg-view'" [config]="view.config"></app-svg-view>
+  <app-verification-view *ngIf="view.type === 'verification-view'"></app-verification-view>
+  <app-compare-view *ngIf="view.type === 'compare-view'"></app-compare-view>
+  <app-search-view *ngIf="view.type === 'search-view'"></app-search-view>
+  <app-iomapping-view *ngIf="view.type === 'iomapping-view'" [config]="view.config"></app-iomapping-view>
+  <app-wiki-view *ngIf="view.type === 'wiki-view'" [config]="view.config"></app-wiki-view>
+  <app-rule-view *ngIf="view.type === 'rule-view'" [config]="view.config"></app-rule-view>
+  <app-text-view *ngIf="view.type === 'text-view'" [config]="view.config"></app-text-view>
+  <app-table-view *ngIf="view.type === 'table-view'"></app-table-view>
+  <app-modification-view *ngIf="view.type === 'modification-view'"></app-modification-view>
+</div>

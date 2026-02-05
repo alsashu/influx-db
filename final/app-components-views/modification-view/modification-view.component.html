@@ -1,0 +1,134 @@
+<app-generic-tool-bar [parent]="this" [toolBarActions]="actionsService.toolBarActions"></app-generic-tool-bar>
+<div class="view-content">
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-indicator">
+    {{ translateFromMap("modification.view.loading") }}
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="errorMessage && !isLoading" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Search box -->
+  <div class="search-container" *ngIf="!isLoading && !errorMessage && modifications.length > 0">
+    <input
+      type="text"
+      class="search-input"
+      [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange()"
+      placeholder="Search..."
+    />
+    <span class="result-count">{{ filteredModifications.length }} / {{ modifications.length }} records</span>
+  </div>
+
+  <!-- Modifications table -->
+  <div class="table-container" *ngIf="!isLoading && !errorMessage && modifications.length > 0">
+    <table class="modifications-table">
+      <thead>
+        <tr>
+          <th (click)="sortBy('date')" class="sortable">
+            Date <fa-icon [icon]="getSortIcon('date')"></fa-icon>
+          </th>
+          <th (click)="sortBy('version')" class="sortable">
+            Version <fa-icon [icon]="getSortIcon('version')"></fa-icon>
+          </th>
+          <th (click)="sortBy('user')" class="sortable">
+            User <fa-icon [icon]="getSortIcon('user')"></fa-icon>
+          </th>
+          <th (click)="sortBy('objectId')" class="sortable">
+            Object Id <fa-icon [icon]="getSortIcon('objectId')"></fa-icon>
+          </th>
+          <th (click)="sortBy('objectName')" class="sortable">
+            Object Name <fa-icon [icon]="getSortIcon('objectName')"></fa-icon>
+          </th>
+          <th (click)="sortBy('state')" class="sortable">
+            State <fa-icon [icon]="getSortIcon('state')"></fa-icon>
+          </th>
+          <th (click)="sortBy('parentObjectName')" class="sortable">
+            Parent Object Name <fa-icon [icon]="getSortIcon('parentObjectName')"></fa-icon>
+          </th>
+          <th (click)="sortBy('elementClass')" class="sortable">
+            Class <fa-icon [icon]="getSortIcon('elementClass')"></fa-icon>
+          </th>
+          <th (click)="sortBy('subtype')" class="sortable">
+            Subtype <fa-icon [icon]="getSortIcon('subtype')"></fa-icon>
+          </th>
+          <th (click)="sortBy('crNumber')" class="sortable">
+            CR Number <fa-icon [icon]="getSortIcon('crNumber')"></fa-icon>
+          </th>
+          <th (click)="sortBy('justification')" class="sortable">
+            Justification <fa-icon [icon]="getSortIcon('justification')"></fa-icon>
+          </th>
+          <th (click)="sortBy('propertyName')" class="sortable">
+            Property <fa-icon [icon]="getSortIcon('propertyName')"></fa-icon>
+          </th>
+          <th (click)="sortBy('originalValue')" class="sortable">
+            Original Value <fa-icon [icon]="getSortIcon('originalValue')"></fa-icon>
+          </th>
+          <th (click)="sortBy('updatedValue')" class="sortable">
+            Updated Value <fa-icon [icon]="getSortIcon('updatedValue')"></fa-icon>
+          </th>
+          <th (click)="sortBy('index')" class="sortable">
+            Index (L1) <fa-icon [icon]="getSortIcon('index')"></fa-icon>
+          </th>
+          <th (click)="sortBy('propertiesL1')" class="sortable">
+            Properties (L1) <fa-icon [icon]="getSortIcon('propertiesL1')"></fa-icon>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let row of getModifications()"
+          [ngClass]="{
+            'row-new': row.state === 'NEW',
+            'row-deleted': row.state === 'DELETED',
+            'row-changed': row.state === 'CHANGED',
+            'row-parent-changed': row.state === 'PARENTCHANGED',
+            'row-graphical': row.state === 'GRAPHICALCHANGEONLY'
+          }"
+        >
+          <td>{{ row.date }}</td>
+          <td>{{ row.version }}</td>
+          <td>{{ row.user }}</td>
+          <td>{{ row.objectId }}</td>
+          <td>{{ row.objectName }}</td>
+          <td>{{ row.state }}</td>
+          <td>{{ row.parentObjectName }}</td>
+          <td>{{ row.elementClass }}</td>
+          <td>{{ row.subtype }}</td>
+          <td>{{ row.crNumber }}</td>
+          <td>{{ row.justification }}</td>
+          <td>{{ row.propertyName }}</td>
+          <td>{{ row.originalValue }}</td>
+          <td>{{ row.updatedValue }}</td>
+          <td>{{ row.index }}</td>
+          <td>{{ row.propertiesL1 }}</td>
+        </tr>
+        <!--<tr>
+          <td [ngbTooltip]="row.date">{{ row.date }}</td>
+          <td [ngbTooltip]="row.version">{{ row.version }}</td>
+          <td [ngbTooltip]="row.user">{{ row.user }}</td>
+          <td [ngbTooltip]="row.objectId">{{ row.objectId }}</td>
+          <td [ngbTooltip]="row.objectName">{{ row.objectName }}</td>
+          <td [ngbTooltip]="row.state">{{ row.state }}</td>
+          <td [ngbTooltip]="row.parentObjectName">{{ row.parentObjectName }}</td>
+          <td [ngbTooltip]="row.elementClass">{{ row.elementClass }}</td>
+          <td [ngbTooltip]="row.subtype">{{ row.subtype }}</td>
+          <td [ngbTooltip]="row.crNumber">{{ row.crNumber }}</td>
+          <td [ngbTooltip]="row.justification">{{ row.justification }}</td>
+          <td [ngbTooltip]="row.propertyName">{{ row.propertyName }}</td>
+          <td [ngbTooltip]="row.originalValue">{{ row.originalValue }}</td>
+          <td [ngbTooltip]="row.updatedValue">{{ row.updatedValue }}</td>
+          <td [ngbTooltip]="row.index">{{ row.index }}</td>
+          <td [ngbTooltip]="row.propertiesL1">{{ row.propertiesL1 }}</td>
+        </tr>-->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- No modifications message -->
+  <div *ngIf="!isLoading && !errorMessage && modifications.length === 0" class="no-modifications">
+    {{ translateFromMap("modification.view.no.modifications") }}
+  </div>
+</div>
